@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Judge Panel</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<nav>
+  <a href="display.html">Live Scoreboard</a>
+</nav>
+
+<div class="panel">
+
+<h2>Judge Score Entry</h2>
+
+<!-- TEAM -->
+<label>Team:</label>
+<select id="team">
+<option value="">--Choose Team--</option>
+</select>
+
+<br><br>
+
+<!-- MISSION 1 -->
+<label>Mission 1:</label>
+<select id="m1">
+<option value="">--Mission 1--</option>
+<option value="m1_correct_seed">Correct seed in colored plot (+10)</option>
+<option value="m1_misplaced_seed">Misplaced seed (-5)</option>
+<option value="m1_correct_water">Watered plots with seeds (max 2) (+30)</option>
+<option value="m1_wrong_water">Wrong water (-10)</option>
+</select>
+
+<br><br>
+
+<!-- MISSION 2 -->
+<label>Mission 2:</label>
+<select id="m2">
+<option value="">--Mission 2--</option>
+<option value="m2_red_correct">Red fruit in Fruits zone (+5)</option>
+<option value="m2_red_wrong">Red fruit in Waste zone (-5)</option>
+<option value="m2_black_correct">Black fruit in Fruits zone (+10)</option>
+<option value="m2_black_wrong">Black fruit in Waste zone (-10)</option>
+</select>
+
+<br><br>
+
+<!-- PENALTIES -->
+<label>Penalties:</label>
+<select id="penalty">
+<option value="">--Penalties--</option>
+<option value="penalty_robot">Unauthorized Robot (-20)</option>
+<option value="penalty_field">Manipulating Field (-20)</option>
+<option value="penalty_seeds">Seeds Outside Zone (-20)</option>
+<option value="penalty_exit">Robot Exit (-20)</option>
+<option value="dq">DISQUALIFIED</option>
+</select>
+
+<br><br>
+
+<button onclick="submitScore()">Submit</button>
+
+<p id="status" style="color:yellow;margin-top:15px;"></p>
+
+</div>
+
+<script src="script.js"></script>
+<script>
+// Populate team dropdown
+const teamSelect=document.getElementById("team");
+teamsList.forEach(t=>{
+  teamSelect.innerHTML+=`<option value="${t.name}">${t.name} (${t.division})</option>`;
+});
+</script>
+
+<script>
+function submitScore(){
+  let action=
+      document.getElementById("m1").value ||
+      document.getElementById("m2").value ||
+      document.getElementById("penalty").value;
+
+  if(!action){
+    alert("Select an action");
+    return;
+  }
+
+  document.getElementById("action")?.remove();
+
+  let hidden=document.createElement("input");
+  hidden.type="hidden";
+  hidden.id="action";
+  hidden.value=action;
+  document.body.appendChild(hidden);
+
+  addScore();
+
+  document.getElementById("m1").value="";
+  document.getElementById("m2").value="";
+  document.getElementById("penalty").value="";
+}
+</script>
+
+</body>
+</html>

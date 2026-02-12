@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Live Scoreboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html">Judge Panel</a>
+</nav>
+
+<div class="panel">
+
+<h3>Match Timer</h3>
+<p id="timer" style="font-size:20px;color:green;">02:00</p>
+<button onclick="startTimer()">Start</button>
+<button onclick="resetTimer()">Reset</button>
+
+<h2>Mission 1 Scoreboard</h2>
+<table>
+<thead>
+<tr>
+  <th>Rank</th>
+  <th>Team</th>
+  <th>Division</th>
+  <th>Correct Seed</th>
+  <th>Misplaced Seed</th>
+  <th>Watered Plots</th>
+  <th>Wrong Water</th>
+  <th>Subtotal</th>
+</tr>
+</thead>
+<tbody id="board-m1"></tbody>
+</table>
+
+<h2>Mission 2 Scoreboard</h2>
+<table>
+<thead>
+<tr>
+  <th>Rank</th>
+  <th>Team</th>
+  <th>Division</th>
+  <th>Red Fruits (Fruits Zone)</th>
+  <th>Red Fruits (Waste Zone)</th>
+  <th>Black Fruits (Fruits Zone)</th>
+  <th>Black Fruits (Waste Zone)</th>
+  <th>Subtotal</th>
+</tr>
+</thead>
+<tbody id="board-m2"></tbody>
+</table>
+
+<h2>Overall Scores</h2>
+<table>
+<thead>
+<tr>
+  <th>Rank</th>
+  <th>Team</th>
+  <th>Division</th>
+  <th>Mission 1 Subtotal</th>
+  <th>Mission 2 Subtotal</th>
+  <th>Penalties</th>
+  <th>Total</th>
+</tr>
+</thead>
+<tbody id="board-total"></tbody>
+</table>
+
+<script src="script.js"></script>
+<script>
+  setInterval(updateBoard, 1000);
+  updateBoard();
+</script>
+
+</div>
+</body>
+</html>

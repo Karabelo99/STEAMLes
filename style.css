@@ -1,0 +1,70 @@
+body {
+  background: #111;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+h1, h2 {
+  margin-top: 20px;
+}
+
+table {
+  margin: auto;
+  width: 95%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: white;
+  color: black;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+select, input, button {
+  padding: 8px;
+  margin: 5px;
+  font-size: 14px;
+}
+
+button {
+  background: #00c853;
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background: #00a746;
+}
+
+/* Flex container for action dropdowns */
+.action-row {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+/* Each action dropdown block */
+.action-item {
+  flex: 1;
+  min-width: 150px;
+}
+
+.action-item label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  text-align: left;
+}
+
+.action-item select {
+  width: 100%;
+}
