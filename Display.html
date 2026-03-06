@@ -2,78 +2,2006 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Live Scoreboard</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Live Scoreboard · Top 3 Qualify, Top 2 Final</title>
+  <style>
+    /* ========== GLOBAL DARK THEME ========== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #ffffff;
+      line-height: 1.6;
+      padding: 25px;
+    }
+
+    .panel {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    /* ========== NAVIGATION ========== */
+    nav {
+      background: #000000;
+      padding: 18px 25px;
+      margin-bottom: 30px;
+      border: 1px solid #2a2a2a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+    }
+
+    nav a {
+      color: #ffffff;
+      text-decoration: none;
+      padding: 10px 20px;
+      margin-right: 10px;
+      font-weight: 500;
+      transition: all 0.3s;
+      border: 1px solid transparent;
+    }
+
+    nav a:hover {
+      background: #1a1a1a;
+      border-color: #444;
+    }
+
+    nav a.active {
+      background: #1a1a1a;
+      border-color: #ffd700;
+      color: #ffd700;
+    }
+
+    /* ========== TIMER CONTAINER ========== */
+    .timer-container {
+      background: #000000;
+      color: white;
+      padding: 30px;
+      margin-bottom: 40px;
+      text-align: center;
+      border: 1px solid #2a2a2a;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .timer-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #ff4444, #ffbb33, #00C851, #33b5e5);
+      animation: scan 4s linear infinite;
+    }
+
+    @keyframes scan {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .timer-container h1 {
+      margin: 0;
+      font-size: 2.2rem;
+      font-weight: 300;
+      letter-spacing: 2px;
+    }
+
+    #timer {
+      font-size: 6rem;
+      font-weight: 200;
+      font-family: 'Courier New', monospace;
+      margin: 20px 0;
+      text-shadow: 0 0 20px rgba(255,255,255,0.3);
+    }
+
+    .timer-status {
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      border: 1px solid #333;
+      display: inline-block;
+      border-radius: 30px;
+    }
+
+    .timer-controls {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .timer-container button {
+      background: transparent;
+      color: white;
+      border: 1px solid #333;
+      padding: 15px 40px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .timer-container button:hover:not(:disabled) {
+      background: white;
+      color: black;
+      border-color: white;
+    }
+
+    .timer-container button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* ========== JUDGE PANEL LOCK INDICATOR ========== */
+    .judge-panel-status {
+      margin-top: 20px;
+      padding: 20px;
+      background: #0a0a0a;
+      border: 2px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 30px;
+    }
+
+    .lock-indicator {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .lock-circle {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      transition: all 0.3s;
+    }
+
+    .lock-circle.green {
+      background: #00C851;
+      color: black;
+      box-shadow: 0 0 30px #00C851;
+    }
+
+    .lock-circle.red {
+      background: #ff4444;
+      color: white;
+      box-shadow: 0 0 30px #ff4444;
+      animation: pulse-red 1s infinite;
+    }
+
+    @keyframes pulse-red {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .lock-text {
+      font-size: 1.5rem;
+      font-weight: 300;
+      letter-spacing: 2px;
+    }
+
+    .lock-text small {
+      display: block;
+      font-size: 0.9rem;
+      color: #888;
+      margin-top: 5px;
+    }
+
+    .judge-panel-preview {
+      display: flex;
+      gap: 10px;
+      opacity: 0.7;
+    }
+
+    .preview-button {
+      width: 40px;
+      height: 40px;
+      background: #333;
+      border-radius: 5px;
+    }
+
+    .preview-button.red {
+      background: #ff4444;
+    }
+
+    .preview-button.green {
+      background: #00C851;
+    }
+
+    /* ========== TIE-BREAKER SECTION ========== */
+    .tiebreaker-section {
+      background: linear-gradient(135deg, #2a1a1a 0%, #1a0a0a 100%);
+      border: 3px solid #ff4444;
+      padding: 30px;
+      margin: 40px 0;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(255, 68, 68, 0.3);
+    }
+
+    .tiebreaker-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .tiebreaker-header h2 {
+      color: #ff4444;
+      font-size: 2rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .tiebreaker-icon {
+      font-size: 2.5rem;
+    }
+
+    .tiebreaker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .tiebreaker-card {
+      background: #0a0a0a;
+      border: 2px solid #ff4444;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    .tiebreaker-teams {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .tiebreaker-team {
+      text-align: center;
+    }
+
+    .tiebreaker-team .team {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ff4444;
+    }
+
+    .tiebreaker-team .division {
+      color: #888;
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+
+    .tiebreaker-vs {
+      font-size: 1.5rem;
+      color: #ff4444;
+      font-weight: bold;
+    }
+
+    .tiebreaker-score {
+      text-align: center;
+      font-size: 1.5rem;
+      color: #ff4444;
+      background: #1a1a1a;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
+    .tiebreaker-message {
+      background: #ff4444;
+      color: black;
+      padding: 15px 25px;
+      border-radius: 50px;
+      display: inline-block;
+      font-weight: bold;
+      font-size: 1.2rem;
+      margin-top: 20px;
+    }
+
+    /* ========== DYNAMIC TRACKER SECTION ========== */
+    .stage-tracker {
+      background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+      border: 3px solid;
+      padding: 30px;
+      margin: 40px 0;
+      box-shadow: 0 0 50px rgba(0,0,0,0.8);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .stage-tracker.qualification {
+      border-color: #00C851;
+    }
+    .stage-tracker.qualification::before {
+      content: '🏆 TOP 3 QUALIFY 🏆';
+      position: absolute;
+      top: 20px;
+      right: -40px;
+      background: #00C851;
+      color: black;
+      padding: 8px 50px;
+      transform: rotate(45deg);
+      font-size: 1rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .stage-tracker.semifinal {
+      border-color: #ffd700;
+    }
+    .stage-tracker.semifinal::before {
+      content: '🎯 TOP 3 PER DIVISION 🎯';
+      position: absolute;
+      top: 20px;
+      right: -40px;
+      background: #ffd700;
+      color: black;
+      padding: 8px 50px;
+      transform: rotate(45deg);
+      font-size: 1rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .stage-tracker.final {
+      border-color: #ffd700;
+      box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+    }
+    .stage-tracker.final::before {
+      content: '⭐ TOP 2 FINALISTS ⭐';
+      position: absolute;
+      top: 20px;
+      right: -40px;
+      background: #ffd700;
+      color: black;
+      padding: 8px 50px;
+      transform: rotate(45deg);
+      font-size: 1rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .tracker-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid;
+    }
+
+    .stage-tracker.qualification .tracker-header {
+      border-bottom-color: #00C851;
+    }
+    .stage-tracker.semifinal .tracker-header {
+      border-bottom-color: #ffd700;
+    }
+    .stage-tracker.final .tracker-header {
+      border-bottom-color: #ffd700;
+    }
+
+    .tracker-header h2 {
+      font-size: 2.2rem;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+
+    .stage-tracker.qualification .tracker-header h2 {
+      color: #00C851;
+    }
+    .stage-tracker.semifinal .tracker-header h2 {
+      color: #ffd700;
+    }
+    .stage-tracker.final .tracker-header h2 {
+      color: #ffd700;
+    }
+
+    .tracker-badge {
+      background: currentColor;
+      color: black;
+      padding: 10px 25px;
+      border-radius: 30px;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    .tracker-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      margin: 30px 0;
+    }
+
+    .tracker-grid.final-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tracker-card {
+      background: #0a0a0a;
+      border: 2px solid;
+      padding: 25px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .stage-tracker.qualification .tracker-card {
+      border-color: #00C851;
+      box-shadow: 0 0 30px rgba(0, 200, 81, 0.2);
+    }
+
+    .stage-tracker.semifinal .tracker-card {
+      border-color: #ffd700;
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+    }
+
+    .stage-tracker.final .tracker-card.junior {
+      border-color: #00C851;
+      box-shadow: 0 0 30px rgba(0, 200, 81, 0.2);
+    }
+    .stage-tracker.final .tracker-card.senior {
+      border-color: #33b5e5;
+      box-shadow: 0 0 30px rgba(51, 181, 229, 0.2);
+    }
+
+    .card-position {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .card-team {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .stage-tracker.qualification .card-team {
+      color: #00C851;
+    }
+    .stage-tracker.semifinal .card-team {
+      color: #ffd700;
+    }
+    .stage-tracker.final .card-team.junior { color: #00C851; }
+    .stage-tracker.final .card-team.senior { color: #33b5e5; }
+
+    .card-score {
+      font-size: 3rem;
+      font-weight: bold;
+      margin: 15px 0;
+      padding: 15px;
+      background: #1a1a1a;
+      border-radius: 10px;
+    }
+
+    .card-division {
+      font-size: 1.2rem;
+      color: #888;
+      margin-top: 10px;
+    }
+
+    .card-details {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 15px;
+      color: #888;
+    }
+
+    /* ========== DROP DOWN SECTIONS ========== */
+    .dropdown-section {
+      margin: 30px 0;
+      border: 2px solid #2a2a2a;
+      background: #0f0f0f;
+      overflow: hidden;
+    }
+
+    .dropdown-header {
+      background: #1a1a1a;
+      padding: 20px 30px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #2a2a2a;
+      transition: all 0.3s;
+    }
+
+    .dropdown-header:hover {
+      background: #252525;
+    }
+
+    .dropdown-header h2 {
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: 300;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .dropdown-header .arrow {
+      font-size: 2rem;
+      color: #ffd700;
+      transition: transform 0.3s;
+    }
+
+    .dropdown-header.collapsed .arrow {
+      transform: rotate(-90deg);
+    }
+
+    .dropdown-content {
+      padding: 25px;
+      background: #0a0a0a;
+      transition: all 0.3s;
+    }
+
+    .dropdown-content.collapsed {
+      display: none;
+    }
+
+    /* Mode indicators */
+    .mode-indicator {
+      display: inline-block;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+    
+    .mode-qual {
+      background: #00C851;
+      color: black;
+    }
+    
+    .mode-semi {
+      background: #ffd700;
+      color: black;
+    }
+    
+    .mode-final {
+      background: #ffd700;
+      color: black;
+      box-shadow: 0 0 10px #ffd700;
+    }
+
+    /* Status badges */
+    .qualified-badge {
+      display: inline-block;
+      background: #00C851;
+      color: black;
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-left: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .tie-badge {
+      display: inline-block;
+      background: #ff4444;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-left: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      animation: pulse-tie 1.5s infinite;
+    }
+
+    @keyframes pulse-tie {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .semifinal-badge {
+      display: inline-block;
+      background: #ffd700;
+      color: black;
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-left: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .final-badge {
+      display: inline-block;
+      background: #ffd700;
+      color: black;
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-left: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 0 10px #ffd700;
+    }
+
+    .out-badge {
+      display: inline-block;
+      background: #ff4444;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .not-qualified-badge {
+      display: inline-block;
+      background: #ff4444;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ========== TABLES ========== */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      color: white;
+    }
+
+    th {
+      background: #1a1a1a;
+      color: white;
+      font-weight: 500;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      padding: 15px 8px;
+      border: 1px solid #333;
+    }
+
+    td {
+      padding: 12px 8px;
+      border: 1px solid #222;
+      text-align: center;
+      color: #e0e0e0;
+    }
+
+    /* Qualification status colors */
+    .qualified-row {
+      background: #ffffff !important;
+      color: #000000 !important;
+      font-weight: bold;
+    }
+    .qualified-row td { color: #000000 !important; }
+
+    .tie-row {
+      background: #ff4444 !important;
+      color: white !important;
+      font-weight: bold;
+      animation: tie-pulse 2s infinite;
+    }
+    .tie-row td { color: white !important; }
+
+    @keyframes tie-pulse {
+      0%, 100% { background-color: #ff4444; }
+      50% { background-color: #cc0000; }
+    }
+
+    .out-row {
+      opacity: 0.7;
+    }
+
+    .finalist-row {
+      background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%) !important;
+      color: #000000 !important;
+      font-weight: bold;
+    }
+    .finalist-row td { color: #000000 !important; }
+
+    .zero-score {
+      opacity: 0.6;
+    }
+
+    .dq-row {
+      background: repeating-linear-gradient(45deg, #660000, #660000 10px, #880000 10px, #880000 20px) !important;
+      color: white !important;
+    }
+
+    .penalty-column { background: #330000 !important; color: #ff8888 !important; }
+    .total-column { background: #004d00 !important; color: white !important; font-weight: 800; }
+    .m1-subtotal { background: #1a3a1a !important; color: #a0ffa0 !important; }
+    .m2-subtotal { background: #1a2a3a !important; color: #a0d0ff !important; }
+
+    /* ========== VIEW TOGGLE ========== */
+    .view-toggle {
+      display: flex;
+      gap: 20px;
+      margin: 30px 0 20px;
+      justify-content: center;
+    }
+
+    .view-btn {
+      background: #1a1a1a;
+      border: 2px solid #333;
+      color: white;
+      padding: 15px 50px;
+      font-size: 1.3rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      border-radius: 50px;
+    }
+
+    .view-btn.active {
+      background: #ffd700;
+      color: black;
+      border-color: #ffd700;
+    }
+
+    .view-btn.qual.active {
+      background: #00C851;
+      border-color: #00C851;
+    }
+
+    .view-btn.final.active {
+      background: #ffd700;
+      color: black;
+      border-color: #ffd700;
+      box-shadow: 0 0 20px #ffd700;
+    }
+  </style>
 </head>
 <body>
 
 <nav>
-  <a href="index.html">Judge Panel</a>
+  <div style="display: flex; align-items: center;">
+    <span style="color:white; font-weight:300; margin-right:30px; font-size:1.2rem;">⚫ SCOREBOARD PRO</span>
+    <a href="index.html">JUDGE PANEL</a>
+    <a href="semifinals.html"> Semi Qualifiers</a>
+    <a href="#" class="active">LIVE BOARD</a>
+  </div>
+  <div style="color:#888; font-size:0.8rem;">TOP 3 QUALIFY · TOP 2 FINAL · v3.0</div>
 </nav>
 
 <div class="panel">
 
-<h3>Match Timer</h3>
-<p id="timer" style="font-size:20px;color:green;">02:00</p>
-<button onclick="startTimer()">Start</button>
-<button onclick="resetTimer()">Reset</button>
+<!-- TIMER -->
+<div class="timer-container">
+  <h1>⏱️ MATCH TIMER</h1>
+  <div id="timer">02:00</div>
+  <div class="timer-status" id="timerStatus">⚫ READY</div>
+  <div class="timer-controls">
+    <button onclick="startTimer()" id="startBtn">▶ START MATCH</button>
+    <button onclick="stopTimer()" id="stopBtn" disabled>⏸ STOP</button>
+    <button onclick="resetTimer()" id="resetBtn" disabled>↺ RESET</button>
+  </div>
+  
+  <div class="judge-panel-status">
+    <div class="lock-indicator">
+      <div class="lock-circle green" id="lockCircle">✅</div>
+      <div class="lock-text" id="lockText">
+        JUDGE PANEL: ACTIVE
+        <small>Scoring allowed</small>
+      </div>
+    </div>
+    <div class="judge-panel-preview">
+      <div class="preview-button" id="previewBtn1"></div>
+      <div class="preview-button" id="previewBtn2"></div>
+      <div class="preview-button" id="previewBtn3"></div>
+    </div>
+  </div>
+</div>
 
-<h2>Mission 1 Scoreboard</h2>
-<table>
-<thead>
-<tr>
-  <th>Rank</th>
-  <th>Team</th>
-  <th>Division</th>
-  <th>Correct Seed</th>
-  <th>Misplaced Seed</th>
-  <th>Watered Plots</th>
-  <th>Wrong Water</th>
-  <th>Subtotal</th>
-</tr>
-</thead>
-<tbody id="board-m1"></tbody>
-</table>
+<!-- TIE-BREAKER SECTION (Shows when ties occur) -->
+<div id="tiebreakerSection" style="display: none;"></div>
 
-<h2>Mission 2 Scoreboard</h2>
-<table>
-<thead>
-<tr>
-  <th>Rank</th>
-  <th>Team</th>
-  <th>Division</th>
-  <th>Red Fruits (Fruits Zone)</th>
-  <th>Red Fruits (Waste Zone)</th>
-  <th>Black Fruits (Fruits Zone)</th>
-  <th>Black Fruits (Waste Zone)</th>
-  <th>Subtotal</th>
-</tr>
-</thead>
-<tbody id="board-m2"></tbody>
-</table>
+<!-- DYNAMIC STAGE TRACKER -->
+<div class="stage-tracker" id="stageTracker">
+  <div class="tracker-header">
+    <h2 id="trackerTitle">🏆 TOP 3 QUALIFY</h2>
+    <div class="tracker-badge" id="trackerBadge">TOP SCORES</div>
+  </div>
+  
+  <div class="tracker-grid" id="trackerGrid"></div>
+</div>
 
-<h2>Overall Scores</h2>
-<table>
-<thead>
-<tr>
-  <th>Rank</th>
-  <th>Team</th>
-  <th>Division</th>
-  <th>Mission 1 Subtotal</th>
-  <th>Mission 2 Subtotal</th>
-  <th>Penalties</th>
-  <th>Total</th>
-</tr>
-</thead>
-<tbody id="board-total"></tbody>
-</table>
+<!-- VIEW TOGGLE -->
+<div class="view-toggle">
+  <button id="viewQualBtn" class="view-btn qual active" onclick="switchView('qual')">🏆 QUALIFICATION</button>
+  <button id="viewSemiBtn" class="view-btn" onclick="switchView('semi')">🎯 SEMIFINALS</button>
+  <button id="viewFinalBtn" class="view-btn" onclick="switchView('final')">⭐ FINALS</button>
+</div>
 
-<script src="script.js"></script>
-<script>
-  setInterval(updateBoard, 1000);
-  updateBoard();
-</script>
+<!-- QUALIFICATION VIEW -->
+<div id="qualificationView">
+  <!-- Junior Division -->
+  <div class="dropdown-section">
+    <div class="dropdown-header" onclick="toggleDropdown('juniorQual')">
+      <h2>👥 JUNIOR DIVISION <span class="mode-indicator mode-qual">TOP 3 QUALIFY</span></h2>
+      <span class="arrow" id="arrowJuniorQual">▼</span>
+    </div>
+    <div class="dropdown-content" id="juniorQual">
+      <table>
+        <thead>
+          <tr>
+            <th>RANK</th>
+            <th>TEAM</th>
+            <th>SEED ✓</th>
+            <th>SEED ✗</th>
+            <th>WATER ✓</th>
+            <th>WATER ✗</th>
+            <th>M1</th>
+            <th>RED ✓</th>
+            <th>RED ✗</th>
+            <th>BLACK ✓</th>
+            <th>BLACK ✗</th>
+            <th>M2</th>
+            <th>PEN</th>
+            <th>TOTAL</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+        <tbody id="board-junior-qual"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Senior Division -->
+  <div class="dropdown-section">
+    <div class="dropdown-header" onclick="toggleDropdown('seniorQual')">
+      <h2>🎓 SENIOR DIVISION <span class="mode-indicator mode-qual">TOP 3 QUALIFY</span></h2>
+      <span class="arrow" id="arrowSeniorQual">▼</span>
+    </div>
+    <div class="dropdown-content" id="seniorQual">
+      <table>
+        <thead>
+          <tr>
+            <th>RANK</th>
+            <th>TEAM</th>
+            <th>SEED ✓</th>
+            <th>SEED ✗</th>
+            <th>WATER ✓</th>
+            <th>WATER ✗</th>
+            <th>M1</th>
+            <th>RED ✓</th>
+            <th>RED ✗</th>
+            <th>BLACK ✓</th>
+            <th>BLACK ✗</th>
+            <th>M2</th>
+            <th>PEN</th>
+            <th>TOTAL</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+        <tbody id="board-senior-qual"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Overall Qualification -->
+  <div class="dropdown-section">
+    <div class="dropdown-header" onclick="toggleDropdown('overallQual')">
+      <h2>🏆 OVERALL RANKING <span class="mode-indicator mode-qual">TOP 6 OVERALL</span></h2>
+      <span class="arrow" id="arrowOverallQual">▼</span>
+    </div>
+    <div class="dropdown-content" id="overallQual">
+      <table>
+        <thead>
+          <tr>
+            <th>RANK</th>
+            <th>TEAM</th>
+            <th>DIV</th>
+            <th>M1</th>
+            <th>M2</th>
+            <th>PEN</th>
+            <th>TOTAL</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+        <tbody id="board-overall-qual"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- SEMIFINALS VIEW -->
+<div id="semifinalView" style="display: none;">
+  <!-- Junior Semifinals -->
+  <div class="dropdown-section">
+    <div class="dropdown-header" onclick="toggleDropdown('juniorSemi')">
+      <h2>👥 JUNIOR SEMIFINALS <span class="mode-indicator mode-semi">TOP 3</span></h2>
+      <span class="arrow" id="arrowJuniorSemi">▼</span>
+    </div>
+    <div class="dropdown-content" id="juniorSemi">
+      <table>
+        <thead>
+          <tr>
+            <th>RANK</th>
+            <th>TEAM</th>
+            <th>SEED ✓</th>
+            <th>SEED ✗</th>
+            <th>WATER ✓</th>
+            <th>WATER ✗</th>
+            <th>M1</th>
+            <th>RED ✓</th>
+            <th>RED ✗</th>
+            <th>BLACK ✓</th>
+            <th>BLACK ✗</th>
+            <th>M2</th>
+            <th>PEN</th>
+            <th>TOTAL</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+        <tbody id="board-junior-semi"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Senior Semifinals -->
+  <div class="dropdown-section">
+    <div class="dropdown-header" onclick="toggleDropdown('seniorSemi')">
+      <h2>🎓 SENIOR SEMIFINALS <span class="mode-indicator mode-semi">TOP 3</span></h2>
+      <span class="arrow" id="arrowSeniorSemi">▼</span>
+    </div>
+    <div class="dropdown-content" id="seniorSemi">
+      <table>
+        <thead>
+          <tr>
+            <th>RANK</th>
+            <th>TEAM</th>
+            <th>SEED ✓</th>
+            <th>SEED ✗</th>
+            <th>WATER ✓</th>
+            <th>WATER ✗</th>
+            <th>M1</th>
+            <th>RED ✓</th>
+            <th>RED ✗</th>
+            <th>BLACK ✓</th>
+            <th>BLACK ✗</th>
+            <th>M2</th>
+            <th>PEN</th>
+            <th>TOTAL</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+        <tbody id="board-senior-semi"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Overall Semifinals -->
+  <div class="dropdown-section">
+    <div class="dropdown-header" onclick="toggleDropdown('overallSemi')">
+      <h2>🏆 OVERALL SEMIFINALS <span class="mode-indicator mode-semi">TOP 2 TO FINALS</span></h2>
+      <span class="arrow" id="arrowOverallSemi">▼</span>
+    </div>
+    <div class="dropdown-content" id="overallSemi">
+      <table>
+        <thead>
+          <tr>
+            <th>RANK</th>
+            <th>TEAM</th>
+            <th>DIV</th>
+            <th>SEED ✓</th>
+            <th>SEED ✗</th>
+            <th>WATER ✓</th>
+            <th>WATER ✗</th>
+            <th>M1</th>
+            <th>RED ✓</th>
+            <th>RED ✗</th>
+            <th>BLACK ✓</th>
+            <th>BLACK ✗</th>
+            <th>M2</th>
+            <th>PEN</th>
+            <th>TOTAL</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+        <tbody id="board-overall-semi"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- FINALS VIEW -->
+<div id="finalView" style="display: none;">
+  <!-- Junior Finals -->
+  <div class="dropdown-section">
+    <div class="dropdown-header" onclick="toggleDropdown('juniorFinal')">
+      <h2>👥 JUNIOR FINALS <span class="mode-indicator mode-final">TOP 2</span></h2>
+      <span class="arrow" id="arrowJuniorFinal">▼</span>
+    </div>
+    <div class="dropdown-content" id="juniorFinal">
+      <table>
+        <thead>
+          <tr>
+            <th>RANK</th>
+            <th>TEAM</th>
+            <th>SEED ✓</th>
+            <th>SEED ✗</th>
+            <th>WATER ✓</th>
+            <th>WATER ✗</th>
+            <th>M1</th>
+            <th>RED ✓</th>
+            <th>RED ✗</th>
+            <th>BLACK ✓</th>
+            <th>BLACK ✗</th>
+            <th>M2</th>
+            <th>PEN</th>
+            <th>TOTAL</th>
+            <th>MEDAL</th>
+          </tr>
+        </thead>
+        <tbody id="board-junior-final"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Senior Finals -->
+  <div class="dropdown-section">
+    <div class="dropdown-header" onclick="toggleDropdown('seniorFinal')">
+      <h2>🎓 SENIOR FINALS <span class="mode-indicator mode-final">TOP 2</span></h2>
+      <span class="arrow" id="arrowSeniorFinal">▼</span>
+    </div>
+    <div class="dropdown-content" id="seniorFinal">
+      <table>
+        <thead>
+          <tr>
+            <th>RANK</th>
+            <th>TEAM</th>
+            <th>SEED ✓</th>
+            <th>SEED ✗</th>
+            <th>WATER ✓</th>
+            <th>WATER ✗</th>
+            <th>M1</th>
+            <th>RED ✓</th>
+            <th>RED ✗</th>
+            <th>BLACK ✓</th>
+            <th>BLACK ✗</th>
+            <th>M2</th>
+            <th>PEN</th>
+            <th>TOTAL</th>
+            <th>MEDAL</th>
+          </tr>
+        </thead>
+        <tbody id="board-senior-final"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Overall Finals (Champions) -->
+  <div class="dropdown-section">
+    <div class="dropdown-header" onclick="toggleDropdown('overallFinal')">
+      <h2>🏆 CHAMPIONS <span class="mode-indicator mode-final">TOP 4 OVERALL</span></h2>
+      <span class="arrow" id="arrowOverallFinal">▼</span>
+    </div>
+    <div class="dropdown-content" id="overallFinal">
+      <table>
+        <thead>
+          <tr>
+            <th>RANK</th>
+            <th>TEAM</th>
+            <th>DIV</th>
+            <th>M1</th>
+            <th>M2</th>
+            <th>PEN</th>
+            <th>TOTAL</th>
+            <th>MEDAL</th>
+          </tr>
+        </thead>
+        <tbody id="board-overall-final"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
 </div>
+
+<script>
+// ==================== TEAMS LIST ====================
+const teamsList = [
+  {name:"J1", division:"J"}, {name:"J2", division:"J"}, {name:"J3", division:"J"},
+  {name:"J4", division:"J"}, {name:"J5", division:"J"}, {name:"J6", division:"J"}, {name:"J7", division:"J"},
+  {name:"S1", division:"S"}, {name:"S2", division:"S"}, {name:"S3", division:"S"},
+  {name:"S4", division:"S"}, {name:"S5", division:"S"}, {name:"S6", division:"S"}, {name:"S7", division:"S"}
+];
+
+// ==================== CALCULATION FUNCTIONS ====================
+function calculateM1Subtotal(t) {
+  return (t.m1_correct_seed || 0)*10 + (t.m1_misplaced_seed || 0)*(-5) + 
+         (t.m1_correct_water || 0)*30 + (t.m1_wrong_water || 0)*0;
+}
+
+function calculateM2Subtotal(t) {
+  return (t.m2_red_correct || 0)*5 + (t.m2_red_wrong || 0)*(-5) + 
+         (t.m2_black_correct || 0)*10 + (t.m2_black_wrong || 0)*(-10);
+}
+
+function calculateTotal(t) {
+  if (t.dq) return -9999;
+  return calculateM1Subtotal(t) + calculateM2Subtotal(t) - (t.penalties || 0);
+}
+
+// ==================== SORTING WITH RANKING ====================
+function getRankedTeams(teams, data) {
+  let teamsWithScores = teams.map(team => {
+    const t = data[team.name] || {};
+    return {
+      name: team.name,
+      division: team.division,
+      raw: t,
+      m1: calculateM1Subtotal(t),
+      m2: calculateM2Subtotal(t),
+      penalties: t.penalties || 0,
+      total: calculateTotal(t),
+      dq: t.dq || false
+    };
+  }).filter(t => !t.dq);
+
+  // Sort by total (highest first)
+  teamsWithScores.sort((a, b) => b.total - a.total);
+  
+  // Add rank with tie handling
+  let currentRank = 1;
+  let currentScore = null;
+  
+  return teamsWithScores.map((team, index) => {
+    if (team.total !== currentScore) {
+      currentRank = index + 1;
+      currentScore = team.total;
+    }
+    return { ...team, rank: currentRank };
+  });
+}
+
+// ==================== TIE DETECTION ====================
+function getTiesInDivision(division) {
+  const data = JSON.parse(localStorage.getItem("scores")) || {};
+  const divisionTeams = teamsList.filter(t => t.division === division);
+  const ranked = getRankedTeams(divisionTeams, data).filter(t => t.total > 0);
+  
+  const ties = [];
+  for (let i = 0; i < ranked.length - 1; i++) {
+    if (ranked[i].total === ranked[i + 1].total && ranked[i].total > 0) {
+      // Check if this tie pair is already recorded
+      const existingTie = ties.find(t => 
+        (t.team1 === ranked[i].name && t.team2 === ranked[i + 1].name) ||
+        (t.team1 === ranked[i + 1].name && t.team2 === ranked[i].name)
+      );
+      
+      if (!existingTie) {
+        ties.push({
+          team1: ranked[i].name,
+          team2: ranked[i + 1].name,
+          score: ranked[i].total,
+          rank1: ranked[i].rank,
+          rank2: ranked[i + 1].rank,
+          division: division
+        });
+      }
+    }
+  }
+  
+  return ties;
+}
+
+function getAllTies() {
+  const juniorTies = getTiesInDivision('J');
+  const seniorTies = getTiesInDivision('S');
+  return [...juniorTies, ...seniorTies];
+}
+
+// ==================== GET QUALIFIED TEAMS (EXCLUDING TIES) ====================
+function getQualifiedTeams() {
+  const data = JSON.parse(localStorage.getItem("scores")) || {};
+  const ties = getAllTies();
+  const tiedTeamNames = ties.flatMap(tie => [tie.team1, tie.team2]);
+  
+  // Junior qualified (top 3, excluding ties)
+  const juniorTeams = teamsList.filter(t => t.division === 'J');
+  const juniorRanked = getRankedTeams(juniorTeams, data).filter(t => t.total > 0 && !tiedTeamNames.includes(t.name));
+  const juniorQualified = juniorRanked.slice(0, 3);
+  
+  // Senior qualified (top 3, excluding ties)
+  const seniorTeams = teamsList.filter(t => t.division === 'S');
+  const seniorRanked = getRankedTeams(seniorTeams, data).filter(t => t.total > 0 && !tiedTeamNames.includes(t.name));
+  const seniorQualified = seniorRanked.slice(0, 3);
+  
+  return { junior: juniorQualified, senior: seniorQualified };
+}
+
+// ==================== GET TOP SCORERS FOR TRACKER (EXCLUDING TIES) ====================
+function getTopScorersForTracker() {
+  const data = JSON.parse(localStorage.getItem("scores")) || {};
+  const ties = getAllTies();
+  const tiedTeamNames = ties.flatMap(tie => [tie.team1, tie.team2]);
+  
+  const allTeams = getRankedTeams(teamsList, data).filter(t => t.total > 0 && !tiedTeamNames.includes(t.name));
+  return allTeams.slice(0, 3);
+}
+
+// ==================== GET SEMIFINAL QUALIFIERS FOR TRACKER ====================
+function getSemifinalQualifiersForTracker() {
+  const { junior, senior } = getQualifiedTeams();
+  return [...junior, ...senior].sort((a, b) => b.total - a.total);
+}
+
+// ==================== GET FINALISTS (TOP 2 PER DIVISION) ====================
+function getFinalists() {
+  const data = JSON.parse(localStorage.getItem("semifinal_scores")) || {};
+  
+  const juniorTeams = teamsList.filter(t => t.division === 'J');
+  const seniorTeams = teamsList.filter(t => t.division === 'S');
+  
+  const juniorRanked = getRankedTeams(juniorTeams, data).filter(t => t.total > 0);
+  const seniorRanked = getRankedTeams(seniorTeams, data).filter(t => t.total > 0);
+  
+  return {
+    junior: juniorRanked.slice(0, 2),
+    senior: seniorRanked.slice(0, 2)
+  };
+}
+
+// ==================== UPDATE TRACKER ====================
+let currentView = 'qual';
+
+function updateTracker() {
+  const tracker = document.getElementById('stageTracker');
+  const title = document.getElementById('trackerTitle');
+  const badge = document.getElementById('trackerBadge');
+  const grid = document.getElementById('trackerGrid');
+  
+  tracker.className = 'stage-tracker';
+  
+  if (currentView === 'qual') {
+    tracker.classList.add('qualification');
+    title.textContent = '🏆 TOP 3 QUALIFY';
+    badge.textContent = 'TOP SCORES';
+    
+    const topScorers = getTopScorersForTracker();
+    
+    if (topScorers.length === 0) {
+      grid.innerHTML = `
+        <div style="grid-column: span 3; text-align: center; padding: 50px; color: #888;">
+          <h3>No qualified teams yet</h3>
+          <p>Teams with ties are not shown until resolved</p>
+        </div>
+      `;
+      return;
+    }
+    
+    let cardsHtml = '';
+    const positions = ['🥇', '🥈', '🥉'];
+    
+    topScorers.forEach((team, index) => {
+      cardsHtml += `
+        <div class="tracker-card">
+          <div class="card-position">${positions[index]}</div>
+          <div class="card-team">${team.name}</div>
+          <div class="card-score">${team.total}</div>
+          <div class="card-division">${team.division === 'J' ? '👥 JUNIOR' : '🎓 SENIOR'}</div>
+          <div class="card-details">
+            <span>M1: ${team.m1}</span>
+            <span>M2: ${team.m2}</span>
+            <span>PEN: ${team.penalties}</span>
+          </div>
+        </div>
+      `;
+    });
+    
+    grid.innerHTML = cardsHtml;
+    
+  } else if (currentView === 'semi') {
+    tracker.classList.add('semifinal');
+    title.textContent = '🎯 SEMIFINAL QUALIFIERS';
+    badge.textContent = 'TOP 3 PER DIVISION';
+    
+    const qualifiers = getSemifinalQualifiersForTracker();
+    
+    if (qualifiers.length === 0) {
+      grid.innerHTML = `
+        <div style="grid-column: span 3; text-align: center; padding: 50px; color: #888;">
+          <h3>No qualifiers yet</h3>
+        </div>
+      `;
+      return;
+    }
+    
+    let cardsHtml = '';
+    qualifiers.forEach((team, index) => {
+      const position = index < 3 ? ['🥇', '🥈', '🥉'][index] : '🏅';
+      cardsHtml += `
+        <div class="tracker-card">
+          <div class="card-position">${position}</div>
+          <div class="card-team">${team.name}</div>
+          <div class="card-division">${team.division === 'J' ? '👥 JUNIOR' : '🎓 SENIOR'}</div>
+          <div class="card-details">
+            <span>Qualified from: ${team.total} pts</span>
+          </div>
+        </div>
+      `;
+    });
+    
+    grid.innerHTML = cardsHtml;
+    
+  } else if (currentView === 'final') {
+    tracker.classList.add('final');
+    title.textContent = '⭐ FINALISTS';
+    badge.textContent = 'TOP 2 PER DIVISION';
+    
+    const { junior, senior } = getFinalists();
+    const allFinalists = [...junior, ...senior];
+    
+    if (allFinalists.length === 0) {
+      grid.innerHTML = `
+        <div style="grid-column: span 2; text-align: center; padding: 50px; color: #888;">
+          <h3>No finalists yet</h3>
+        </div>
+      `;
+      return;
+    }
+    
+    grid.className = 'tracker-grid final-grid';
+    let cardsHtml = '';
+    
+    // Show finalists (2 junior + 2 senior)
+    allFinalists.forEach((team) => {
+      const division = team.division === 'J' ? 'JUNIOR' : 'SENIOR';
+      const position = team.division === 'J' 
+        ? (junior[0]?.name === team.name ? '🥇 JUNIOR' : '🥈 JUNIOR')
+        : (senior[0]?.name === team.name ? '🥇 SENIOR' : '🥈 SENIOR');
+      
+      cardsHtml += `
+        <div class="tracker-card ${team.division === 'J' ? 'junior' : 'senior'}">
+          <div class="card-position">${position}</div>
+          <div class="card-team ${team.division === 'J' ? 'junior' : 'senior'}">${team.name}</div>
+          <div class="card-division">${team.division === 'J' ? '👥 JUNIOR' : '🎓 SENIOR'}</div>
+        </div>
+      `;
+    });
+    
+    grid.innerHTML = cardsHtml;
+  }
+}
+
+// ==================== UPDATE TIE-BREAKER SECTION ====================
+function updateTiebreaker() {
+  const ties = getAllTies();
+  const section = document.getElementById('tiebreakerSection');
+  
+  if (ties.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  let html = `
+    <div class="tiebreaker-section">
+      <div class="tiebreaker-header">
+        <span class="tiebreaker-icon">⚔️</span>
+        <h2>TIE-BREAKER REQUIRED</h2>
+        <span class="tiebreaker-icon">⚔️</span>
+      </div>
+      <div class="tiebreaker-grid">
+  `;
+
+  ties.forEach(tie => {
+    html += `
+      <div class="tiebreaker-card">
+        <div class="tiebreaker-teams">
+          <div class="tiebreaker-team">
+            <div class="team">${tie.team1}</div>
+            <div class="division">${tie.division === 'J' ? 'Junior' : 'Senior'} · Rank #${tie.rank1}</div>
+          </div>
+          <div class="tiebreaker-vs">VS</div>
+          <div class="tiebreaker-team">
+            <div class="team">${tie.team2}</div>
+            <div class="division">${tie.division === 'J' ? 'Junior' : 'Senior'} · Rank #${tie.rank2}</div>
+          </div>
+        </div>
+        <div class="tiebreaker-score">Tied at ${tie.score} points</div>
+      </div>
+    `;
+  });
+
+  html += `
+      </div>
+      <div class="tiebreaker-message">
+        ⚔️ These teams are tied · Must play a tie-breaker match ⚔️
+      </div>
+    </div>
+  `;
+
+  section.innerHTML = html;
+  section.style.display = 'block';
+}
+
+// ==================== UPDATE QUALIFICATION TABLES ====================
+function updateQualificationTables() {
+  const data = JSON.parse(localStorage.getItem("scores")) || {};
+  const ties = getAllTies();
+  const tiedTeamNames = ties.flatMap(tie => [tie.team1, tie.team2]);
+  const { junior: juniorQualified, senior: seniorQualified } = getQualifiedTeams();
+  const juniorQualifiedNames = juniorQualified.map(t => t.name);
+  const seniorQualifiedNames = seniorQualified.map(t => t.name);
+  
+  // Junior table
+  const juniorTeams = teamsList.filter(t => t.division === 'J');
+  const juniorRanked = getRankedTeams(juniorTeams, data);
+  
+  let juniorHtml = '';
+  juniorRanked.forEach(team => {
+    const s = team.raw;
+    let rowClass = '';
+    let statusBadge = '';
+    
+    if (team.total <= 0) {
+      rowClass = 'out-row';
+      statusBadge = '<span class="not-qualified-badge">NO SCORE</span>';
+    } else if (tiedTeamNames.includes(team.name)) {
+      rowClass = 'tie-row';
+      statusBadge = '<span class="tie-badge">⚔️ TIE · MUST PLAY AGAIN</span>';
+    } else if (juniorQualifiedNames.includes(team.name)) {
+      rowClass = 'qualified-row';
+      statusBadge = '<span class="qualified-badge">QUALIFIED</span>';
+    } else {
+      rowClass = 'out-row';
+      statusBadge = '<span class="out-badge">OUT</span>';
+    }
+    
+    juniorHtml += `<tr class="${rowClass}">
+      <td>${team.rank}</td>
+      <td><strong>${team.name}</strong></td>
+      <td>${s.m1_correct_seed || 0}</td>
+      <td>${s.m1_misplaced_seed || 0}</td>
+      <td>${s.m1_correct_water || 0}</td>
+      <td>${s.m1_wrong_water || 0}</td>
+      <td class="m1-subtotal">${team.m1}</td>
+      <td>${s.m2_red_correct || 0}</td>
+      <td>${s.m2_red_wrong || 0}</td>
+      <td>${s.m2_black_correct || 0}</td>
+      <td>${s.m2_black_wrong || 0}</td>
+      <td class="m2-subtotal">${team.m2}</td>
+      <td class="penalty-column">${team.penalties}</td>
+      <td class="total-column">${team.total}</td>
+      <td>${statusBadge}</td>
+    </tr>`;
+  });
+  document.getElementById("board-junior-qual").innerHTML = juniorHtml;
+
+  // Senior table
+  const seniorTeams = teamsList.filter(t => t.division === 'S');
+  const seniorRanked = getRankedTeams(seniorTeams, data);
+  
+  let seniorHtml = '';
+  seniorRanked.forEach(team => {
+    const s = team.raw;
+    let rowClass = '';
+    let statusBadge = '';
+    
+    if (team.total <= 0) {
+      rowClass = 'out-row';
+      statusBadge = '<span class="not-qualified-badge">NO SCORE</span>';
+    } else if (tiedTeamNames.includes(team.name)) {
+      rowClass = 'tie-row';
+      statusBadge = '<span class="tie-badge">⚔️ TIE · MUST PLAY AGAIN</span>';
+    } else if (seniorQualifiedNames.includes(team.name)) {
+      rowClass = 'qualified-row';
+      statusBadge = '<span class="qualified-badge">QUALIFIED</span>';
+    } else {
+      rowClass = 'out-row';
+      statusBadge = '<span class="out-badge">OUT</span>';
+    }
+    
+    seniorHtml += `<tr class="${rowClass}">
+      <td>${team.rank}</td>
+      <td><strong>${team.name}</strong></td>
+      <td>${s.m1_correct_seed || 0}</td>
+      <td>${s.m1_misplaced_seed || 0}</td>
+      <td>${s.m1_correct_water || 0}</td>
+      <td>${s.m1_wrong_water || 0}</td>
+      <td class="m1-subtotal">${team.m1}</td>
+      <td>${s.m2_red_correct || 0}</td>
+      <td>${s.m2_red_wrong || 0}</td>
+      <td>${s.m2_black_correct || 0}</td>
+      <td>${s.m2_black_wrong || 0}</td>
+      <td class="m2-subtotal">${team.m2}</td>
+      <td class="penalty-column">${team.penalties}</td>
+      <td class="total-column">${team.total}</td>
+      <td>${statusBadge}</td>
+    </tr>`;
+  });
+  document.getElementById("board-senior-qual").innerHTML = seniorHtml;
+
+  // Overall table (show top 6 overall)
+  const overallRanked = getRankedTeams(teamsList, data);
+  
+  let overallHtml = '';
+  overallRanked.forEach((team, index) => {
+    if (index < 6) {
+      let statusBadge = '';
+      if (tiedTeamNames.includes(team.name)) {
+        statusBadge = '<span class="tie-badge">⚔️ TIE</span>';
+      } else if (juniorQualifiedNames.includes(team.name) || seniorQualifiedNames.includes(team.name)) {
+        statusBadge = '<span class="semifinal-badge">SEMIFINAL</span>';
+      } else if (team.total > 0) {
+        statusBadge = '<span class="out-badge">OUT</span>';
+      } else {
+        statusBadge = '<span class="not-qualified-badge">NO SCORE</span>';
+      }
+      
+      overallHtml += `<tr>
+        <td>${team.rank}</td>
+        <td><strong>${team.name}</strong></td>
+        <td>${team.division}</td>
+        <td>${team.m1}</td>
+        <td>${team.m2}</td>
+        <td class="penalty-column">${team.penalties}</td>
+        <td class="total-column">${team.total}</td>
+        <td>${statusBadge}</td>
+      </tr>`;
+    }
+  });
+  
+  if (overallRanked.length === 0) {
+    overallHtml = `<tr><td colspan="8" style="text-align: center; padding: 30px;">No qualifiers yet</td></tr>`;
+  }
+  document.getElementById("board-overall-qual").innerHTML = overallHtml;
+}
+
+// ==================== UPDATE SEMIFINAL TABLES ====================
+function updateSemifinalTables() {
+  const data = JSON.parse(localStorage.getItem("semifinal_scores")) || {};
+  const { junior, senior } = getQualifiedTeams();
+  const juniorQualifiedNames = junior.map(t => t.name);
+  const seniorQualifiedNames = senior.map(t => t.name);
+  
+  // Junior table - with full mission attributes
+  let juniorHtml = '';
+  const juniorTeams = teamsList.filter(t => t.division === 'J' && juniorQualifiedNames.includes(t.name));
+  const juniorRanked = getRankedTeams(juniorTeams, data);
+  
+  juniorRanked.forEach((team, index) => {
+    const s = team.raw;
+    juniorHtml += `<tr class="qualified-row">
+      <td>${team.rank}</td>
+      <td><strong>${team.name}</strong></td>
+      <td>${s.m1_correct_seed || 0}</td>
+      <td>${s.m1_misplaced_seed || 0}</td>
+      <td>${s.m1_correct_water || 0}</td>
+      <td>${s.m1_wrong_water || 0}</td>
+      <td class="m1-subtotal">${team.m1}</td>
+      <td>${s.m2_red_correct || 0}</td>
+      <td>${s.m2_red_wrong || 0}</td>
+      <td>${s.m2_black_correct || 0}</td>
+      <td>${s.m2_black_wrong || 0}</td>
+      <td class="m2-subtotal">${team.m2}</td>
+      <td class="penalty-column">${team.penalties}</td>
+      <td class="total-column">${team.total}</td>
+      <td><span class="semifinal-badge">SEMIFINAL</span></td>
+    </tr>`;
+  });
+  
+  if (juniorHtml === '') {
+    juniorHtml = `<tr><td colspan="15" style="text-align: center; padding: 30px;">No junior qualifiers yet</td></tr>`;
+  }
+  document.getElementById("board-junior-semi").innerHTML = juniorHtml;
+
+  // Senior table - with full mission attributes
+  let seniorHtml = '';
+  const seniorTeams = teamsList.filter(t => t.division === 'S' && seniorQualifiedNames.includes(t.name));
+  const seniorRanked = getRankedTeams(seniorTeams, data);
+  
+  seniorRanked.forEach((team, index) => {
+    const s = team.raw;
+    seniorHtml += `<tr class="qualified-row">
+      <td>${team.rank}</td>
+      <td><strong>${team.name}</strong></td>
+      <td>${s.m1_correct_seed || 0}</td>
+      <td>${s.m1_misplaced_seed || 0}</td>
+      <td>${s.m1_correct_water || 0}</td>
+      <td>${s.m1_wrong_water || 0}</td>
+      <td class="m1-subtotal">${team.m1}</td>
+      <td>${s.m2_red_correct || 0}</td>
+      <td>${s.m2_red_wrong || 0}</td>
+      <td>${s.m2_black_correct || 0}</td>
+      <td>${s.m2_black_wrong || 0}</td>
+      <td class="m2-subtotal">${team.m2}</td>
+      <td class="penalty-column">${team.penalties}</td>
+      <td class="total-column">${team.total}</td>
+      <td><span class="semifinal-badge">SEMIFINAL</span></td>
+    </tr>`;
+  });
+  
+  if (seniorHtml === '') {
+    seniorHtml = `<tr><td colspan="15" style="text-align: center; padding: 30px;">No senior qualifiers yet</td></tr>`;
+  }
+  document.getElementById("board-senior-semi").innerHTML = seniorHtml;
+
+  // Overall table - show all 6 qualifiers with full mission attributes
+  const allQualifiedTeams = [...juniorTeams, ...seniorTeams];
+  const rankedTeams = getRankedTeams(allQualifiedTeams, data);
+  
+  // Get finalists (top 2 per division from semifinal scores)
+  const juniorFinalists = rankedTeams.filter(t => t.division === 'J').slice(0, 2).map(t => t.name);
+  const seniorFinalists = rankedTeams.filter(t => t.division === 'S').slice(0, 2).map(t => t.name);
+  
+  let overallHtml = '';
+  rankedTeams.forEach((team, index) => {
+    const s = team.raw;
+    let statusBadge = '';
+    let rowClass = '';
+    
+    if (team.division === 'J' && juniorFinalists.includes(team.name)) {
+      statusBadge = '<span class="qualified-badge">TO FINALS</span>';
+      rowClass = 'qualified-row';
+    } else if (team.division === 'S' && seniorFinalists.includes(team.name)) {
+      statusBadge = '<span class="qualified-badge">TO FINALS</span>';
+      rowClass = 'qualified-row';
+    } else if (team.total > 0) {
+      statusBadge = '<span class="out-badge">OUT</span>';
+      rowClass = 'out-row';
+    } else {
+      statusBadge = '<span class="not-qualified-badge">NO SCORE</span>';
+      rowClass = 'out-row';
+    }
+    
+    overallHtml += `<tr class="${rowClass}">
+      <td>${team.rank}</td>
+      <td><strong>${team.name}</strong></td>
+      <td>${team.division}</td>
+      <td>${s.m1_correct_seed || 0}</td>
+      <td>${s.m1_misplaced_seed || 0}</td>
+      <td>${s.m1_correct_water || 0}</td>
+      <td>${s.m1_wrong_water || 0}</td>
+      <td class="m1-subtotal">${team.m1}</td>
+      <td>${s.m2_red_correct || 0}</td>
+      <td>${s.m2_red_wrong || 0}</td>
+      <td>${s.m2_black_correct || 0}</td>
+      <td>${s.m2_black_wrong || 0}</td>
+      <td class="m2-subtotal">${team.m2}</td>
+      <td class="penalty-column">${team.penalties}</td>
+      <td class="total-column">${team.total}</td>
+      <td>${statusBadge}</td>
+    </tr>`;
+  });
+  
+  if (rankedTeams.length === 0) {
+    overallHtml = `<tr><td colspan="16" style="text-align: center; padding: 30px;">No semifinal scores yet</td></tr>`;
+  }
+  document.getElementById("board-overall-semi").innerHTML = overallHtml;
+}
+
+// ==================== UPDATE FINAL TABLES ====================
+function updateFinalTables() {
+  const data = JSON.parse(localStorage.getItem("final_scores")) || {};
+  const { junior, senior } = getFinalists();
+  
+  // Junior Finals table (top 2)
+  let juniorHtml = '';
+  junior.forEach((team, index) => {
+    const s = data[team.name] || {};
+    const total = calculateTotal(s);
+    let medal = '';
+    if (index === 0) medal = '🥇 GOLD';
+    else if (index === 1) medal = '🥈 SILVER';
+    
+    juniorHtml += `<tr class="finalist-row">
+      <td>${index + 1}</td>
+      <td><strong>${team.name}</strong></td>
+      <td>${s.m1_correct_seed || 0}</td>
+      <td>${s.m1_misplaced_seed || 0}</td>
+      <td>${s.m1_correct_water || 0}</td>
+      <td>${s.m1_wrong_water || 0}</td>
+      <td class="m1-subtotal">${calculateM1Subtotal(s)}</td>
+      <td>${s.m2_red_correct || 0}</td>
+      <td>${s.m2_red_wrong || 0}</td>
+      <td>${s.m2_black_correct || 0}</td>
+      <td>${s.m2_black_wrong || 0}</td>
+      <td class="m2-subtotal">${calculateM2Subtotal(s)}</td>
+      <td class="penalty-column">${s.penalties || 0}</td>
+      <td class="total-column">${total}</td>
+      <td><span class="final-badge">${medal}</span></td>
+    </tr>`;
+  });
+  
+  if (junior.length === 0) {
+    juniorHtml = `<tr><td colspan="15" style="text-align: center; padding: 30px;">No junior finalists yet</td></tr>`;
+  }
+  document.getElementById("board-junior-final").innerHTML = juniorHtml;
+
+  // Senior Finals table (top 2)
+  let seniorHtml = '';
+  senior.forEach((team, index) => {
+    const s = data[team.name] || {};
+    const total = calculateTotal(s);
+    let medal = '';
+    if (index === 0) medal = '🥇 GOLD';
+    else if (index === 1) medal = '🥈 SILVER';
+    
+    seniorHtml += `<tr class="finalist-row">
+      <td>${index + 1}</td>
+      <td><strong>${team.name}</strong></td>
+      <td>${s.m1_correct_seed || 0}</td>
+      <td>${s.m1_misplaced_seed || 0}</td>
+      <td>${s.m1_correct_water || 0}</td>
+      <td>${s.m1_wrong_water || 0}</td>
+      <td class="m1-subtotal">${calculateM1Subtotal(s)}</td>
+      <td>${s.m2_red_correct || 0}</td>
+      <td>${s.m2_red_wrong || 0}</td>
+      <td>${s.m2_black_correct || 0}</td>
+      <td>${s.m2_black_wrong || 0}</td>
+      <td class="m2-subtotal">${calculateM2Subtotal(s)}</td>
+      <td class="penalty-column">${s.penalties || 0}</td>
+      <td class="total-column">${total}</td>
+      <td><span class="final-badge">${medal}</span></td>
+    </tr>`;
+  });
+  
+  if (senior.length === 0) {
+    seniorHtml = `<tr><td colspan="15" style="text-align: center; padding: 30px;">No senior finalists yet</td></tr>`;
+  }
+  document.getElementById("board-senior-final").innerHTML = seniorHtml;
+
+  // Overall Champions table (top 4 overall - 2 junior + 2 senior)
+  const allFinalists = [...junior, ...senior];
+  const allWithScores = allFinalists.map(team => {
+    const s = data[team.name] || {};
+    return {
+      ...team,
+      finalTotal: calculateTotal(s),
+      finalM1: calculateM1Subtotal(s),
+      finalM2: calculateM2Subtotal(s),
+      finalPenalties: s.penalties || 0
+    };
+  }).sort((a, b) => b.finalTotal - a.finalTotal);
+  
+  let overallHtml = '';
+  allWithScores.forEach((team, index) => {
+    let medal = '';
+    if (index === 0) medal = '🥇 GOLD';
+    else if (index === 1) medal = '🥈 SILVER';
+    else if (index === 2) medal = '🥉 BRONZE';
+    else medal = '🏅 FINALIST';
+    
+    overallHtml += `<tr class="finalist-row">
+      <td>${index + 1}</td>
+      <td><strong>${team.name}</strong></td>
+      <td>${team.division}</td>
+      <td>${team.finalM1}</td>
+      <td>${team.finalM2}</td>
+      <td class="penalty-column">${team.finalPenalties}</td>
+      <td class="total-column">${team.finalTotal}</td>
+      <td><span class="final-badge">${medal}</span></td>
+    </tr>`;
+  });
+  
+  if (allWithScores.length === 0) {
+    overallHtml = `<tr><td colspan="8" style="text-align: center; padding: 30px;">No champions yet</td></tr>`;
+  }
+  document.getElementById("board-overall-final").innerHTML = overallHtml;
+}
+
+// ==================== TIMER FUNCTIONS ====================
+let timerInterval;
+let timeLeft = 120;
+let isTimerRunning = false;
+
+const timerDisplay = document.getElementById('timer');
+const timerStatus = document.getElementById('timerStatus');
+const lockCircle = document.getElementById('lockCircle');
+const lockText = document.getElementById('lockText');
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+const resetBtn = document.getElementById('resetBtn');
+const previewBtns = [
+  document.getElementById('previewBtn1'),
+  document.getElementById('previewBtn2'),
+  document.getElementById('previewBtn3')
+];
+
+function updateLockIndicator(locked) {
+  if (locked) {
+    lockCircle.className = 'lock-circle red';
+    lockCircle.innerHTML = '🔒';
+    lockText.innerHTML = 'JUDGE PANEL: LOCKED <small>No scoring allowed</small>';
+    
+    previewBtns.forEach(btn => {
+      if(btn) btn.className = 'preview-button red';
+    });
+    
+    localStorage.setItem('judgePanelLock', JSON.stringify({ locked: true, timeLeft, isRunning: isTimerRunning }));
+  } else {
+    lockCircle.className = 'lock-circle green';
+    lockCircle.innerHTML = '✅';
+    lockText.innerHTML = 'JUDGE PANEL: ACTIVE <small>Scoring allowed</small>';
+    
+    previewBtns.forEach(btn => {
+      if(btn) btn.className = 'preview-button green';
+    });
+    
+    localStorage.setItem('judgePanelLock', JSON.stringify({ locked: false, timeLeft, isRunning: isTimerRunning }));
+  }
+}
+
+function updateTimerDisplay() {
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+  timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function startTimer() {
+  if (timeLeft <= 0) resetTimer();
+  isTimerRunning = true;
+  updateLockIndicator(true);
+  
+  timerStatus.innerHTML = '🔴 MATCH IN PROGRESS';
+  timerStatus.style.color = '#ff4444';
+  
+  startBtn.disabled = true;
+  stopBtn.disabled = false;
+  resetBtn.disabled = false;
+  
+  if (timerInterval) clearInterval(timerInterval);
+  
+  timerInterval = setInterval(() => {
+    if (timeLeft > 0) {
+      timeLeft--;
+      updateTimerDisplay();
+      updateLockIndicator(true);
+      
+      if (timeLeft <= 10) {
+        timerDisplay.style.color = '#ff4444';
+        timerStatus.innerHTML = '⏰ FINAL COUNTDOWN!';
+      } else if (timeLeft <= 30) {
+        timerDisplay.style.color = '#ffbb33';
+        timerStatus.innerHTML = '⚠️ UNDER 30 SECONDS';
+      }
+    } else {
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+      timerDisplay.style.color = '#ff4444';
+      timerStatus.innerHTML = '⏹ MATCH FINISHED';
+      updateLockIndicator(true);
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  isTimerRunning = false;
+  updateLockIndicator(false);
+  timerStatus.innerHTML = '⏸ PAUSED';
+  timerStatus.style.color = '#ffbb33';
+  timerDisplay.style.color = '#ffbb33';
+  startBtn.disabled = false;
+  stopBtn.disabled = true;
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  isTimerRunning = false;
+  timeLeft = 120;
+  updateLockIndicator(false);
+  timerDisplay.style.color = 'white';
+  timerStatus.innerHTML = '⚫ READY';
+  timerStatus.style.color = '#888';
+  startBtn.disabled = false;
+  stopBtn.disabled = true;
+  resetBtn.disabled = true;
+  updateTimerDisplay();
+}
+
+updateTimerDisplay();
+updateLockIndicator(false);
+
+// ==================== DROPDOWN TOGGLE ====================
+function toggleDropdown(id) {
+  const content = document.getElementById(id);
+  const arrow = document.getElementById('arrow' + id.charAt(0).toUpperCase() + id.slice(1));
+  
+  if (content.classList.contains('collapsed')) {
+    content.classList.remove('collapsed');
+    arrow.style.transform = 'rotate(0deg)';
+  } else {
+    content.classList.add('collapsed');
+    arrow.style.transform = 'rotate(-90deg)';
+  }
+}
+
+// ==================== VIEW SWITCHING ====================
+function switchView(view) {
+  currentView = view;
+  
+  const qualView = document.getElementById('qualificationView');
+  const semiView = document.getElementById('semifinalView');
+  const finalView = document.getElementById('finalView');
+  const qualBtn = document.getElementById('viewQualBtn');
+  const semiBtn = document.getElementById('viewSemiBtn');
+  const finalBtn = document.getElementById('viewFinalBtn');
+  
+  qualView.style.display = 'none';
+  semiView.style.display = 'none';
+  finalView.style.display = 'none';
+  qualBtn.classList.remove('active');
+  semiBtn.classList.remove('active');
+  finalBtn.classList.remove('active');
+  
+  if (view === 'qual') {
+    qualView.style.display = 'block';
+    qualBtn.classList.add('active');
+  } else if (view === 'semi') {
+    semiView.style.display = 'block';
+    semiBtn.classList.add('active');
+  } else {
+    finalView.style.display = 'block';
+    finalBtn.classList.add('active');
+  }
+  
+  updateTracker();
+}
+
+// ==================== MASTER UPDATE ====================
+function updateBoard() {
+  updateTiebreaker();
+  updateTracker();
+  updateQualificationTables();
+  updateSemifinalTables();
+  updateFinalTables();
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  if (!localStorage.getItem('scores')) localStorage.setItem('scores', '{}');
+  if (!localStorage.getItem('semifinal_scores')) localStorage.setItem('semifinal_scores', '{}');
+  if (!localStorage.getItem('final_scores')) localStorage.setItem('final_scores', '{}');
+  
+  updateBoard();
+  setInterval(updateBoard, 1000);
+  
+  window.addEventListener('storage', updateBoard);
+});
+
+// Make functions global
+window.toggleDropdown = toggleDropdown;
+window.switchView = switchView;
+window.startTimer = startTimer;
+window.stopTimer = stopTimer;
+window.resetTimer = resetTimer;
+</script>
+
 </body>
 </html>

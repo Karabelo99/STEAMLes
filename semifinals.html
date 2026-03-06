@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Semifinals · Synced with Display Panel</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #ffffff;
+      padding: 25px;
+    }
+
+    .panel {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    nav {
+      background: #000000;
+      padding: 18px 25px;
+      margin-bottom: 30px;
+      border: 1px solid #2a2a2a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav a {
+      color: #ffffff;
+      text-decoration: none;
+      padding: 10px 20px;
+    }
+
+    nav a.active {
+      background: #1a1a1a;
+      border: 1px solid #ffd700;
+      color: #ffd700;
+    }
+
+    h1 {
+      color: #ffd700;
+      margin-bottom: 30px;
+    }
+
+    .table-container {
+      margin-bottom: 40px;
+    }
+
+    h2 {
+      color: #fff;
+      margin-bottom: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #0a0a0a;
+      border: 1px solid #333;
+    }
+
+    th {
+      background: #1a1a1a;
+      color: white;
+      padding: 12px;
+      text-align: center;
+    }
+
+    td {
+      padding: 10px;
+      border: 1px solid #333;
+      text-align: center;
+    }
+
+    .qualified-table {
+      border: 2px solid #00C851;
+    }
+
+    .qualified-table th {
+      background: #00C851;
+      color: black;
+    }
+
+    .tie-table {
+      border: 2px solid #ff4444;
+    }
+
+    .tie-table th {
+      background: #ff4444;
+      color: white;
+    }
+
+    .semifinal-1 {
+      background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
+      color: #000;
+    }
+    .semifinal-1 td { color: #000; }
+
+    .semifinal-2 {
+      background: linear-gradient(135deg, #e0e0e0 0%, #a0a0a0 100%);
+      color: #000;
+    }
+    .semifinal-2 td { color: #000; }
+
+    .semifinal-3 {
+      background: linear-gradient(135deg, #cd7f32 0%, #8b4513 100%);
+      color: #000;
+    }
+    .semifinal-3 td { color: #000; }
+
+    .active-row {
+      background: #1a3a1a;
+    }
+
+    .tied-team-junior {
+      background: #2a0a0a;
+    }
+
+    .tied-team-senior {
+      background: #2a0a2a;
+    }
+
+    .rank-badge {
+      background: #ffd700;
+      color: black;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .note {
+      margin-top: 10px;
+      padding: 10px;
+      background: #1a1a1a;
+      border-left: 4px solid #ff4444;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    .status-semifinal { background: #ffd700; color: black; }
+    .status-tied { background: #1e3c72; color: white; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div>
+    <span style="color:white; margin-right:30px;">SCOREBOARD PRO</span>
+    <a href="index.html">JUDGE PANEL</a>
+    <a href="live.html">LIVE</a>
+    <a href="semifinals.html" class="active">SEMIFINALS</a>
+  </div>
+</nav>
+
+<div class="panel">
+
+  <h1>🏆 SEMIFINALS · SYNCED WITH DISPLAY</h1>
+
+  <!-- TABLE 1: SEMIFINALISTS (matches display panel) -->
+  <div class="table-container">
+    <h2>✅ SEMIFINAL QUALIFIERS</h2>
+    <table class="qualified-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Team</th>
+          <th>Div</th>
+          <th>M1</th>
+          <th>M2</th>
+          <th>Pen</th>
+          <th>Total</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="qualifiedTable"></tbody>
+    </table>
+  </div>
+
+  <!-- TABLE 2: TIED TEAMS (must replay) -->
+  <div class="table-container">
+    <h2>⚖️ TIED · REPLAY REQUIRED</h2>
+    <table class="tie-table">
+      <thead>
+        <tr>
+          <th>Team</th>
+          <th>Div</th>
+          <th>M1</th>
+          <th>M2</th>
+          <th>Pen</th>
+          <th>Seed C</th>
+          <th>Seed M</th>
+          <th>Water C</th>
+          <th>Red C</th>
+          <th>Red W</th>
+          <th>Black C</th>
+          <th>Black W</th>
+          <th>Total</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tieTable"></tbody>
+    </table>
+    <div class="note">These teams are tied and must play a replay match to determine who qualifies.</div>
+  </div>
+
+</div>
+
+<script>
+// ==================== TEAMS LIST (matches display panel) ====================
+const teamsList = [
+  {name:"J1", division:"J"}, {name:"J2", division:"J"}, {name:"J3", division:"J"},
+  {name:"J4", division:"J"}, {name:"J5", division:"J"}, {name:"J6", division:"J"}, {name:"J7", division:"J"},
+  {name:"S1", division:"S"}, {name:"S2", division:"S"}, {name:"S3", division:"S"},
+  {name:"S4", division:"S"}, {name:"S5", division:"S"}, {name:"S6", division:"S"}, {name:"S7", division:"S"}
+];
+
+// ==================== CALCULATION FUNCTIONS (identical to display panel) ====================
+function calculateM1Subtotal(t) {
+  return (t.m1_correct_seed || 0)*10 + (t.m1_misplaced_seed || 0)*(-5) + 
+         (t.m1_correct_water || 0)*30 + (t.m1_wrong_water || 0)*0;
+}
+
+function calculateM2Subtotal(t) {
+  return (t.m2_red_correct || 0)*5 + (t.m2_red_wrong || 0)*(-5) + 
+         (t.m2_black_correct || 0)*10 + (t.m2_black_wrong || 0)*(-10);
+}
+
+function calculateTotal(t) {
+  if (t.dq) return -9999;
+  return calculateM1Subtotal(t) + calculateM2Subtotal(t) - (t.penalties || 0);
+}
+
+// ==================== GET ALL VALID TEAMS ====================
+function getValidTeams(data) {
+  return teamsList.map(team => {
+    const t = data[team.name] || {};
+    return {
+      name: team.name,
+      division: team.division,
+      m1: calculateM1Subtotal(t),
+      m2: calculateM2Subtotal(t),
+      penalties: t.penalties || 0,
+      total: calculateTotal(t),
+      dq: t.dq || false,
+      raw: t
+    };
+  }).filter(t => !t.dq && t.total > 0);
+}
+
+// ==================== GET STATUS FROM TOTAL AND POSITION ====================
+function getTeamStatus(team, allTeams, rank) {
+  // Group by score to detect ties
+  const sameScore = allTeams.filter(t => t.total === team.total);
+  
+  if (sameScore.length > 1) {
+    return { status: 'tied', class: team.division === 'J' ? 'tied-team-junior' : 'tied-team-senior' };
+  }
+  
+  // No tie - assign semifinal rank based on position
+  if (rank === 1) return { status: 'SEMIFINAL 1', class: 'semifinal-1' };
+  if (rank === 2) return { status: 'SEMIFINAL 2', class: 'semifinal-2' };
+  if (rank === 3) return { status: 'SEMIFINAL 3', class: 'semifinal-3' };
+  return { status: 'QUALIFIED', class: 'active-row' };
+}
+
+// ==================== MAIN UPDATE ====================
+function updateTables() {
+  const data = JSON.parse(localStorage.getItem("scores")) || {};
+  const allTeams = getValidTeams(data);
+  
+  // Sort all teams by total (descending)
+  const sortedAll = [...allTeams].sort((a,b) => b.total - a.total);
+  
+  // Separate by division for tie detection
+  const juniorTeams = allTeams.filter(t => t.division === 'J').sort((a,b) => b.total - a.total);
+  const seniorTeams = allTeams.filter(t => t.division === 'S').sort((a,b) => b.total - a.total);
+  
+  const qualified = [];
+  const tied = [];
+  
+  // Process Junior division
+  if (juniorTeams.length > 0) {
+    // Find ties within top 4
+    const juniorTop4 = juniorTeams.slice(0, Math.min(4, juniorTeams.length));
+    const juniorScores = juniorTop4.map(t => t.total);
+    
+    // Check for any duplicate scores in top 4
+    const scoreCount = {};
+    juniorTop4.forEach(t => scoreCount[t.total] = (scoreCount[t.total] || 0) + 1);
+    
+    // If there are ties, move ALL teams with that score to tied array
+    const tiedScores = Object.keys(scoreCount).filter(score => scoreCount[score] > 1).map(Number);
+    
+    if (tiedScores.length > 0) {
+      // There are ties - move all tied teams to tied array
+      juniorTeams.forEach(t => {
+        if (tiedScores.includes(t.total)) {
+          tied.push(t);
+        } else if (juniorTop4.includes(t) && scoreCount[t.total] === 1) {
+          // Unique scores in top 4 qualify
+          qualified.push(t);
+        }
+      });
+    } else {
+      // No ties - all top 4 qualify
+      qualified.push(...juniorTop4);
+    }
+  }
+  
+  // Process Senior division (same logic)
+  if (seniorTeams.length > 0) {
+    const seniorTop4 = seniorTeams.slice(0, Math.min(4, seniorTeams.length));
+    const scoreCount = {};
+    seniorTop4.forEach(t => scoreCount[t.total] = (scoreCount[t.total] || 0) + 1);
+    
+    const tiedScores = Object.keys(scoreCount).filter(score => scoreCount[score] > 1).map(Number);
+    
+    if (tiedScores.length > 0) {
+      seniorTeams.forEach(t => {
+        if (tiedScores.includes(t.total)) {
+          tied.push(t);
+        } else if (seniorTop4.includes(t) && scoreCount[t.total] === 1) {
+          qualified.push(t);
+        }
+      });
+    } else {
+      qualified.push(...seniorTop4);
+    }
+  }
+  
+  // Remove duplicates from tied (a team might appear twice if in both divisions? no, but safe)
+  const uniqueTied = [...new Map(tied.map(t => [t.name, t])).values()];
+  
+  // Sort qualified by total for overall ranking
+  qualified.sort((a,b) => b.total - a.total);
+  
+  // ===== TABLE 1: QUALIFIED =====
+  let qualifiedHtml = '';
+  qualified.forEach((team, idx) => {
+    const status = getTeamStatus(team, allTeams, idx + 1);
+    qualifiedHtml += `<tr class="${status.class}">
+      <td><span class="rank-badge">${idx+1}</span></td>
+      <td><strong>${team.name}</strong></td>
+      <td>${team.division}</td>
+      <td>${team.m1}</td>
+      <td>${team.m2}</td>
+      <td>${team.penalties}</td>
+      <td><strong>${team.total}</strong></td>
+      <td><span class="status-badge status-semifinal">${status.status}</span></td>
+    </tr>`;
+  });
+  
+  if (qualified.length === 0) {
+    qualifiedHtml = '<tr><td colspan="8" style="padding:20px; text-align:center;">No semifinalists yet</td></tr>';
+  }
+  document.getElementById('qualifiedTable').innerHTML = qualifiedHtml;
+  
+  // ===== TABLE 2: TIED =====
+  let tieHtml = '';
+  uniqueTied.forEach(team => {
+    const rowClass = team.division === 'J' ? 'tied-team-junior' : 'tied-team-senior';
+    tieHtml += `<tr class="${rowClass}">
+      <td><strong>${team.name}</strong></td>
+      <td>${team.division}</td>
+      <td>${team.m1}</td>
+      <td>${team.m2}</td>
+      <td>${team.penalties}</td>
+      <td>${team.raw.m1_correct_seed || 0}</td>
+      <td>${team.raw.m1_misplaced_seed || 0}</td>
+      <td>${team.raw.m1_correct_water || 0}</td>
+      <td>${team.raw.m2_red_correct || 0}</td>
+      <td>${team.raw.m2_red_wrong || 0}</td>
+      <td>${team.raw.m2_black_correct || 0}</td>
+      <td>${team.raw.m2_black_wrong || 0}</td>
+      <td><strong>${team.total}</strong></td>
+      <td><span class="status-badge status-tied">TIED</span></td>
+    </tr>`;
+  });
+  
+  if (uniqueTied.length === 0) {
+    tieHtml = '<tr><td colspan="14" style="padding:20px; text-align:center;">No tied teams</td></tr>';
+  }
+  document.getElementById('tieTable').innerHTML = tieHtml;
+}
+
+// Refresh every second to stay in sync with display panel
+setInterval(updateTables, 1000);
+updateTables();
+window.addEventListener('storage', updateTables);
+</script>
+
+</body>
+</html>

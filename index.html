@@ -1,108 +1,1259 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Judge Panel</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Judge Panel · Tap for point value</title>
+  <style>
+    /* ----- DARK MODERN ----- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background: #0a0c0e;
+      color: #f0f0f0;
+      padding: 24px;
+    }
+
+    .app {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* ----- navigation ----- */
+    .nav {
+      background: #0f0f0f;
+      border: 1px solid #2a2a2a;
+      padding: 16px 28px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      color: #ccc;
+      text-decoration: none;
+      padding: 8px 20px;
+      border: 1px solid transparent;
+      font-weight: 500;
+    }
+
+    .nav-links a.active {
+      border-color: #f2c94c;
+      background: #1b1b1b;
+      color: #f2c94c;
+    }
+
+    .lock-badge {
+      padding: 8px 24px;
+      border-radius: 40px;
+      background: #1a2a1a;
+      color: #b7e0b7;
+      border: 1px solid #2e7d32;
+    }
+
+    .lock-badge.locked {
+      background: #3d1e1e;
+      color: #ffaeae;
+      border-color: #b71c1c;
+    }
+
+    /* ----- lock overlay ----- */
+    .lock-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.97);
+      backdrop-filter: blur(12px);
+      z-index: 9999;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      border: 6px solid #d32f2f;
+    }
+    .lock-overlay.active { display: flex; }
+    .lock-icon { font-size: 7rem; color: #d32f2f; }
+    .lock-message { font-size: 3rem; font-weight: 800; color: #d32f2f; }
+    .lock-timer { font-size: 4rem; background: #1e1e1e; padding: 20px 60px; border-radius: 40px; border: 2px solid #d32f2f; margin: 30px 0; font-family: monospace; }
+
+    /* ----- header + team selector chip ----- */
+    .judge-header {
+      background: #0f0f0f;
+      border: 1px solid #2a2a2a;
+      padding: 22px 28px;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .team-selector-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .team-selector-row select {
+      background: #1e1e1e;
+      border: 1px solid #444;
+      color: white;
+      font-size: 1.6rem;
+      padding: 10px 40px 10px 20px;
+      border-radius: 60px;
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23f2c94c' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 18px center;
+      font-weight: 600;
+    }
+
+    .active-badge {
+      background: #1f2a1f;
+      padding: 8px 32px;
+      border-radius: 40px;
+      border-left: 5px solid #f2c94c;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    /* scoring mode selector */
+    .mode-selector {
+      display: flex;
+      gap: 10px;
+      margin-left: 20px;
+    }
+    
+    .mode-btn {
+      background: #1e1e1e;
+      border: 2px solid #444;
+      color: white;
+      padding: 10px 25px;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .mode-btn.active {
+      background: #f2c94c;
+      color: black;
+      border-color: #f2c94c;
+    }
+    
+    .mode-btn.qualification.active {
+      background: #00C851;
+      border-color: #00C851;
+      color: black;
+    }
+    
+    .mode-btn.semifinal.active {
+      background: #ffd700;
+      border-color: #ffd700;
+      color: black;
+    }
+    
+    .mode-btn.final.active {
+      background: #ffd700;
+      border-color: #ffd700;
+      color: black;
+      box-shadow: 0 0 15px #ffd700;
+    }
+
+    /* qualification status badges */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+    
+    .status-qualified {
+      background: #00C851;
+      color: black;
+    }
+    
+    .status-semifinal {
+      background: #ffd700;
+      color: black;
+    }
+    
+    .status-final {
+      background: #ffd700;
+      color: black;
+      box-shadow: 0 0 10px #ffd700;
+    }
+    
+    .status-out {
+      background: #ff4444;
+      color: white;
+    }
+    
+    .status-no-score {
+      background: #666;
+      color: white;
+    }
+
+    /* division filter */
+    .division-filter {
+      display: flex;
+      gap: 10px;
+      margin: 10px 0;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      background: #1e1e1e;
+      border: 1px solid #444;
+      color: white;
+      padding: 8px 20px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .filter-btn.active {
+      background: #f2c94c;
+      color: black;
+      border-color: #f2c94c;
+    }
+
+    /* finalist filter */
+    .filter-btn.finalist-filter {
+      background: #3a2a1a;
+      border-color: #ffd700;
+      color: #ffd700;
+    }
+    .filter-btn.finalist-filter.active {
+      background: #ffd700;
+      color: black;
+    }
+
+    /* ----- main scoring grid: cards = clickable attributes ----- */
+    .attribute-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 20px;
+      margin: 30px 0 25px;
+    }
+
+    .attribute-card {
+      background: #131313;
+      border: 2px solid #2c2c2c;
+      padding: 28px 16px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.1s ease;
+      border-radius: 12px;
+      user-select: none;
+      box-shadow: 0 4px 0 #0a0a0a;
+      position: relative;
+    }
+
+    .attribute-card:active {
+      transform: scale(0.97);
+      background: #1f2a1f;
+      border-color: #f2c94c;
+    }
+
+    .attribute-card.locked-card {
+      opacity: 0.35;
+      pointer-events: none;
+      filter: grayscale(0.8);
+    }
+
+    .attr-name {
+      color: #bbb;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .attr-value {
+      font-size: 3.2rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #f2c94c;
+    }
+
+    .point-badge {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      background: #2a2a2a;
+      color: #f2c94c;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 4px 12px;
+      border-radius: 40px;
+      border: 1px solid #555;
+    }
+
+    .attr-footnote {
+      color: #6a6a6a;
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+
+    /* mission group title */
+    .mission-group-title {
+      color: #f2c94c;
+      font-size: 1.8rem;
+      margin: 30px 0 10px;
+      border-bottom: 2px solid #2a2a2a;
+      padding-bottom: 8px;
+    }
+
+    /* penalties & dq row */
+    .special-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 25px;
+      background: #0f0f0f;
+      border: 1px solid #2a2a2a;
+      padding: 22px 30px;
+      margin: 30px 0 20px;
+      align-items: center;
+    }
+
+    .penalty-chip {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: #1c1c1c;
+      padding: 5px 20px 5px 25px;
+      border-radius: 60px;
+    }
+    .penalty-chip .label { color: #aaa; }
+    .penalty-chip .value { font-size: 2rem; font-weight: 600; color: #ffb74d; min-width: 50px; text-align: center; }
+
+    .dq-button {
+      background: #3a2020;
+      border: 2px solid #b71c1c;
+      color: #ffbcbc;
+      padding: 12px 40px;
+      font-weight: 800;
+      font-size: 1.3rem;
+      border-radius: 60px;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+    .dq-button.active-dq {
+      background: #b71c1c;
+      color: white;
+      border-color: white;
+    }
+    .dq-button:active { transform: scale(0.96); }
+
+    .totals-row {
+      display: flex;
+      gap: 30px;
+      justify-content: flex-end;
+      margin-left: auto;
+    }
+    .total-bubble {
+      background: #1a1a1a;
+      padding: 12px 28px;
+      border-radius: 60px;
+      text-align: center;
+      border: 1px solid #3a3a3a;
+    }
+    .total-bubble .label { color: #aaa; font-size: 0.8rem; }
+    .total-bubble .number { font-size: 2.4rem; font-weight: 700; line-height: 1; }
+    .number.m1 { color: #9ccc9c; }
+    .number.m2 { color: #9abde0; }
+    .number.final { color: #f2c94c; }
+
+    /* quick mini team row */
+    .mini-team-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 25px 0 15px;
+      background: #0d0d0d;
+      padding: 16px;
+      border: 1px solid #2a2a2a;
+    }
+    .mini-team {
+      background: #1b1b1b;
+      padding: 8px 18px;
+      border-left: 4px solid #3d3d3d;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .mini-team.active-mini { border-left-color: #f2c94c; background: #262626; }
+    .mini-team.dq-mini { opacity: 0.4; text-decoration: line-through; }
+    .mini-team .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-qualified { background: #00C851; }
+    .dot-semifinal { background: #ffd700; }
+    .dot-final { background: #ffd700; box-shadow: 0 0 5px gold; }
+    .dot-out { background: #ff4444; }
+    .dot-no-score { background: #666; }
+
+    .global-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: flex-end;
+      margin-top: 35px;
+    }
+    .btn {
+      padding: 14px 40px;
+      font-weight: 700;
+      background: #1e1e1e;
+      border: 1px solid #444;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      text-transform: uppercase;
+    }
+    .btn.primary { background: #1f4f1f; border-color: #2e7d32; }
+    .btn.warning { background: #664500; border-color: #f2c94c; }
+    .btn:disabled { opacity: 0.3; }
+
+    /* finalists panel */
+    .finalists-panel {
+      background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+      border: 3px solid #ffd700;
+      padding: 20px;
+      margin: 30px 0;
+      border-radius: 12px;
+    }
+    
+    .finalists-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .finalists-header h3 {
+      color: #ffd700;
+      font-size: 1.8rem;
+      margin: 0;
+    }
+    
+    .finalists-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    
+    .finalist-card {
+      background: #0a0a0a;
+      border: 2px solid #ffd700;
+      padding: 15px;
+      text-align: center;
+      border-radius: 8px;
+    }
+    
+    .finalist-card .team-name {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #ffd700;
+    }
+    
+    .finalist-card .team-div {
+      color: #888;
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+
+    /* mode info */
+    .mode-info {
+      background: #1a1a1a;
+      padding: 15px 25px;
+      border-radius: 40px;
+      border-left: 5px solid #f2c94c;
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .mode-stats {
+      display: flex;
+      gap: 30px;
+    }
+    
+    .stat-item {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #f2c94c;
+    }
+    
+    .stat-label {
+      color: #888;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
-
 <body>
-
-<nav>
-  <a href="display.html">Live Scoreboard</a>
-</nav>
-
-<div class="panel">
-
-<h2>Judge Score Entry</h2>
-
-<!-- TEAM -->
-<label>Team:</label>
-<select id="team">
-<option value="">--Choose Team--</option>
-</select>
-
-<br><br>
-
-<!-- MISSION 1 -->
-<label>Mission 1:</label>
-<select id="m1">
-<option value="">--Mission 1--</option>
-<option value="m1_correct_seed">Correct seed in colored plot (+10)</option>
-<option value="m1_misplaced_seed">Misplaced seed (-5)</option>
-<option value="m1_correct_water">Watered plots with seeds (max 2) (+30)</option>
-<option value="m1_wrong_water">Wrong water (-10)</option>
-</select>
-
-<br><br>
-
-<!-- MISSION 2 -->
-<label>Mission 2:</label>
-<select id="m2">
-<option value="">--Mission 2--</option>
-<option value="m2_red_correct">Red fruit in Fruits zone (+5)</option>
-<option value="m2_red_wrong">Red fruit in Waste zone (-5)</option>
-<option value="m2_black_correct">Black fruit in Fruits zone (+10)</option>
-<option value="m2_black_wrong">Black fruit in Waste zone (-10)</option>
-</select>
-
-<br><br>
-
-<!-- PENALTIES -->
-<label>Penalties:</label>
-<select id="penalty">
-<option value="">--Penalties--</option>
-<option value="penalty_robot">Unauthorized Robot (-20)</option>
-<option value="penalty_field">Manipulating Field (-20)</option>
-<option value="penalty_seeds">Seeds Outside Zone (-20)</option>
-<option value="penalty_exit">Robot Exit (-20)</option>
-<option value="dq">DISQUALIFIED</option>
-</select>
-
-<br><br>
-
-<button onclick="submitScore()">Submit</button>
-
-<p id="status" style="color:yellow;margin-top:15px;"></p>
-
+<div class="lock-overlay" id="lockOverlay">
+  <div class="lock-icon">🔒</div>
+  <div class="lock-message">PANEL LOCKED</div>
+  <div class="lock-timer" id="lockTimerDisplay">02:00</div>
+  <div style="color:#aaa;">match in progress · scoring disabled</div>
 </div>
 
-<script src="script.js"></script>
-<script>
-// Populate team dropdown
-const teamSelect=document.getElementById("team");
-teamsList.forEach(t=>{
-  teamSelect.innerHTML+=`<option value="${t.name}">${t.name} (${t.division})</option>`;
-});
-</script>
+<div class="app">
+  <!-- nav -->
+  <div class="nav">
+    <div class="nav-links">
+      <span style="color:#eee; margin-right:24px;">🏆 TAP FOR POINTS</span>
+      <a href="#" class="active">JUDGE PANEL</a>
+      <a href="Display.html">LIVE BOARD</a>
+    </div>
+    <div class="lock-badge" id="globalLockBadge">🔓 PANEL ACTIVE</div>
+  </div>
+
+  <!-- header with team selector (dropdown) -->
+  <div class="judge-header">
+    <div class="team-selector-row">
+      <select id="teamSelect" style="font-size:1.5rem;"></select>
+      <div class="active-badge" id="activeTeamBadge">
+        <span id="selectedTeamDisplay">J1</span> 
+        <span style="color:#888; margin-left:10px;" id="divisionDisplay">JUNIOR</span>
+        <span id="statusIndicator" style="margin-left:15px;"></span>
+      </div>
+      
+      <!-- Scoring Mode Selector - NOW WITH FINAL MODE -->
+      <div class="mode-selector">
+        <button class="mode-btn qualification active" id="qualificationMode">🏆 QUALIFICATION</button>
+        <button class="mode-btn semifinal" id="semifinalMode">🎯 SEMIFINAL</button>
+        <button class="mode-btn final" id="finalMode">🏆 FINAL</button>
+      </div>
+    </div>
+    <div id="matchStatus" style="color:#6c6;">⚡ tap to add points</div>
+  </div>
+
+  <!-- Mode Info Panel -->
+  <div class="mode-info" id="modeInfo">
+    <span id="modeTitle">QUALIFICATION ROUND</span>
+    <div class="mode-stats">
+      <div class="stat-item">
+        <div class="stat-value" id="qualifiedCount">0</div>
+        <div class="stat-label">Qualified (Top 4/Div)</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="finalistCount">0/4</div>
+        <div class="stat-label">Finalists</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- division filter -->
+  <div class="division-filter">
+    <button class="filter-btn active" id="filterAll">ALL TEAMS</button>
+    <button class="filter-btn" id="filterJunior">JUNIOR ONLY</button>
+    <button class="filter-btn" id="filterSenior">SENIOR ONLY</button>
+    <button class="filter-btn finalist-filter" id="filterQualified">🏆 QUALIFIED</button>
+    <button class="filter-btn finalist-filter" id="filterFinalists">⭐ FINALISTS</button>
+  </div>
+
+  <!-- mini team strip (quick change) -->
+  <div class="mini-team-strip" id="miniTeamStrip"></div>
+
+  <!-- finalists quick view (only shown in semifinal mode) -->
+  <div class="finalists-panel" id="finalistsPanel" style="display: none;">
+    <div class="finalists-header">
+      <h3>⭐ FINALISTS (TOP 2 PER DIVISION)</h3>
+      <span style="color:#ffd700;">advance to finals</span>
+    </div>
+    <div class="finalists-grid" id="finalistsGrid"></div>
+  </div>
+
+  <!-- ========== CLICKABLE ATTRIBUTE GRID ========== -->
+  <div id="attributePanel"></div>
+
+  <!-- special actions: penalties + dq + live totals -->
+  <div class="special-actions" id="specialActions"></div>
+
+  <!-- global buttons -->
+  <div class="global-buttons">
+    <button class="btn primary" id="saveAllBtn">💾 SAVE ALL</button>
+    <button class="btn warning" id="resetAllBtn">↺ RESET ALL</button>
+  </div>
+</div>
 
 <script>
-function submitScore(){
-  let action=
-      document.getElementById("m1").value ||
-      document.getElementById("m2").value ||
-      document.getElementById("penalty").value;
+(function() {
+  // ---------- ALL TEAMS (14 teams) ----------
+  const teamsList = [
+    {name:"J1", division:"J"}, {name:"J2", division:"J"}, {name:"J3", division:"J"},
+    {name:"J4", division:"J"}, {name:"J5", division:"J"}, {name:"J6", division:"J"}, {name:"J7", division:"J"},
+    {name:"S1", division:"S"}, {name:"S2", division:"S"}, {name:"S3", division:"S"},
+    {name:"S4", division:"S"}, {name:"S5", division:"S"}, {name:"S6", division:"S"}, {name:"S7", division:"S"}
+  ];
 
-  if(!action){
-    alert("Select an action");
-    return;
+  // value map for each attribute (points per tap)
+  const POINTS = {
+    m1_correct_seed: 10,
+    m1_misplaced_seed: -5,
+    m1_correct_water: 30,
+    m1_wrong_water: 0,
+    m2_red_correct: 5,
+    m2_red_wrong: -5,
+    m2_black_correct: 10,
+    m2_black_wrong: -10
+  };
+
+  // display labels
+  const DISPLAY = {
+    m1_correct_seed: { name:'SEED ✓', sub:'+10 each' },
+    m1_misplaced_seed: { name:'SEED misplaced', sub:'-5 each' },
+    m1_correct_water: { name:'WATER ✓', sub:'+30 each' },
+    m1_wrong_water: { name:'WATER wrong', sub:'0 each' },
+    m2_red_correct: { name:'RED ✓', sub:'+5 each' },
+    m2_red_wrong: { name:'RED wrong', sub:'-5 each' },
+    m2_black_correct: { name:'BLACK ✓', sub:'+10 each' },
+    m2_black_wrong: { name:'BLACK wrong', sub:'-10 each' }
+  };
+
+  // ---------- STATE ----------
+  let currentTeam = 'J1';
+  let isPanelLocked = false;
+  let lockInterval;
+  let currentFilter = 'all'; // 'all', 'junior', 'senior', 'qualified', 'finalists'
+  let currentMode = 'qualification'; // 'qualification', 'semifinal', or 'final'
+
+  // ---------- SCORES ----------
+  function getScores() { 
+    if (currentMode === 'qualification') {
+      return JSON.parse(localStorage.getItem('scores')) || {};
+    } else if (currentMode === 'semifinal') {
+      return JSON.parse(localStorage.getItem('semifinal_scores')) || {};
+    } else {
+      return JSON.parse(localStorage.getItem('final_scores')) || {};
+    }
+  }
+  
+  function saveScores(data) { 
+    if (currentMode === 'qualification') {
+      localStorage.setItem('scores', JSON.stringify(data));
+    } else if (currentMode === 'semifinal') {
+      localStorage.setItem('semifinal_scores', JSON.stringify(data));
+    } else {
+      localStorage.setItem('final_scores', JSON.stringify(data));
+    }
+    window.dispatchEvent(new Event('storage')); // live update
   }
 
-  document.getElementById("action")?.remove();
+  function getTeamData(team) { return getScores()[team] || {}; }
 
-  let hidden=document.createElement("input");
-  hidden.type="hidden";
-  hidden.id="action";
-  hidden.value=action;
-  document.body.appendChild(hidden);
+  // calculations
+  function calcM1(d) { 
+    return (d.m1_correct_seed||0)*10 + (d.m1_misplaced_seed||0)*(-5) + (d.m1_correct_water||0)*30 + (d.m1_wrong_water||0)*0;
+  }
+  function calcM2(d) { 
+    return (d.m2_red_correct||0)*5 + (d.m2_red_wrong||0)*(-5) + (d.m2_black_correct||0)*10 + (d.m2_black_wrong||0)*(-10);
+  }
+  function calcTotal(d) { return d.dq ? -9999 : (calcM1(d)+calcM2(d)-(d.penalties||0)); }
 
-  addScore();
+  // increment attribute
+  function addPointValue(team, field) {
+    if (isPanelLocked) return;
+    const all = getScores();
+    if (!all[team]) all[team] = {};
+    const currentCount = all[team][field] || 0;
+    all[team][field] = currentCount + 1;
+    saveScores(all);
+    renderAll();
+  }
 
-  document.getElementById("m1").value="";
-  document.getElementById("m2").value="";
-  document.getElementById("penalty").value="";
-}
+  // subtract (right click)
+  function subtractPointValue(team, field) {
+    if (isPanelLocked) return;
+    const all = getScores();
+    if (!all[team]) all[team] = {};
+    const current = all[team][field] || 0;
+    if (current > 0) {
+      all[team][field] = current - 1;
+    } else {
+      all[team][field] = 0;
+    }
+    saveScores(all);
+    renderAll();
+  }
+
+  // dq toggle
+  function toggleDQ(team) {
+    if (isPanelLocked) return;
+    const all = getScores();
+    if (!all[team]) all[team] = {};
+    all[team].dq = !all[team].dq;
+    saveScores(all);
+    renderAll();
+  }
+
+  // penalties increment/decrement
+  function adjustPenalty(team, delta) {
+    if (isPanelLocked) return;
+    const all = getScores();
+    if (!all[team]) all[team] = {};
+    const current = all[team].penalties || 0;
+    all[team].penalties = Math.max(0, current + delta);
+    saveScores(all);
+    renderAll();
+  }
+
+  // reset single team
+  function resetTeam(team) {
+    if (isPanelLocked) return;
+    const all = getScores();
+    all[team] = {};
+    saveScores(all);
+    renderAll();
+  }
+
+  // reset all scores for current mode
+  function resetAllScores() {
+    if (isPanelLocked) return;
+    const mode = currentMode === 'qualification' ? 'QUALIFICATION' : currentMode === 'semifinal' ? 'SEMIFINAL' : 'FINAL';
+    if(confirm(`⚠️ RESET ALL ${mode} SCORES?`)) {
+      if (currentMode === 'qualification') {
+        localStorage.setItem('scores', JSON.stringify({}));
+      } else if (currentMode === 'semifinal') {
+        localStorage.setItem('semifinal_scores', JSON.stringify({}));
+      } else {
+        localStorage.setItem('final_scores', JSON.stringify({}));
+      }
+      renderAll();
+    }
+  }
+
+  // ---------- QUALIFICATION FUNCTIONS ----------
+  function getQualifiedTeams() {
+    const data = JSON.parse(localStorage.getItem('scores')) || {};
+    
+    // Junior qualified (top 4 with positive score)
+    const juniorTeams = teamsList.filter(t => t.division === 'J');
+    const juniorWithScores = juniorTeams.map(team => {
+      const t = data[team.name] || {};
+      return {
+        name: team.name,
+        total: calcTotal(t),
+        division: 'J'
+      };
+    }).filter(t => t.total > 0).sort((a, b) => b.total - a.total);
+    const juniorQualified = juniorWithScores.slice(0, 4).map(t => t.name);
+    
+    // Senior qualified (top 4 with positive score)
+    const seniorTeams = teamsList.filter(t => t.division === 'S');
+    const seniorWithScores = seniorTeams.map(team => {
+      const t = data[team.name] || {};
+      return {
+        name: team.name,
+        total: calcTotal(t),
+        division: 'S'
+      };
+    }).filter(t => t.total > 0).sort((a, b) => b.total - a.total);
+    const seniorQualified = seniorWithScores.slice(0, 4).map(t => t.name);
+    
+    return { junior: juniorQualified, senior: seniorQualified };
+  }
+
+  function isQualified(team) {
+    const { junior, senior } = getQualifiedTeams();
+    const teamDiv = teamsList.find(t => t.name === team)?.division;
+    if (teamDiv === 'J') return junior.includes(team);
+    if (teamDiv === 'S') return senior.includes(team);
+    return false;
+  }
+
+  // ---------- SEMIFINAL FUNCTIONS ----------
+  function getFinalists() {
+    const data = JSON.parse(localStorage.getItem('semifinal_scores')) || {};
+    
+    // Junior finalists (top 2 with positive score)
+    const juniorTeams = teamsList.filter(t => t.division === 'J');
+    const juniorWithScores = juniorTeams.map(team => {
+      const t = data[team.name] || {};
+      return {
+        name: team.name,
+        total: calcTotal(t),
+        division: 'J'
+      };
+    }).filter(t => t.total > 0).sort((a, b) => b.total - a.total);
+    const juniorFinalists = juniorWithScores.slice(0, 2).map(t => t.name);
+    
+    // Senior finalists (top 2 with positive score)
+    const seniorTeams = teamsList.filter(t => t.division === 'S');
+    const seniorWithScores = seniorTeams.map(team => {
+      const t = data[team.name] || {};
+      return {
+        name: team.name,
+        total: calcTotal(t),
+        division: 'S'
+      };
+    }).filter(t => t.total > 0).sort((a, b) => b.total - a.total);
+    const seniorFinalists = seniorWithScores.slice(0, 2).map(t => t.name);
+    
+    return { junior: juniorFinalists, senior: seniorFinalists };
+  }
+
+  function isFinalist(team) {
+    const { junior, senior } = getFinalists();
+    const teamDiv = teamsList.find(t => t.name === team)?.division;
+    if (teamDiv === 'J') return junior.includes(team);
+    if (teamDiv === 'S') return senior.includes(team);
+    return false;
+  }
+
+  // ---------- TEAM STATUS ----------
+  function getTeamStatus(team) {
+    const data = getScores();
+    const teamData = data[team] || {};
+    const total = calcTotal(teamData);
+    
+    if (teamData.dq) return { text: 'DQ', class: 'status-out' };
+    if (total <= 0) return { text: 'NO SCORE', class: 'status-no-score' };
+    
+    if (currentMode === 'qualification') {
+      if (isQualified(team)) return { text: 'QUALIFIED', class: 'status-qualified' };
+      return { text: 'OUT', class: 'status-out' };
+    } else if (currentMode === 'semifinal') {
+      if (isFinalist(team)) return { text: 'FINAL', class: 'status-final' };
+      return { text: 'SEMIFINAL', class: 'status-semifinal' };
+    } else {
+      return { text: 'FINALIST', class: 'status-final' };
+    }
+  }
+
+  // filter functions
+  function getFilteredTeams() {
+    let filtered = teamsList;
+    
+    if (currentFilter === 'junior') {
+      filtered = teamsList.filter(t => t.division === 'J');
+    } else if (currentFilter === 'senior') {
+      filtered = teamsList.filter(t => t.division === 'S');
+    } else if (currentFilter === 'qualified' && currentMode === 'qualification') {
+      const { junior, senior } = getQualifiedTeams();
+      filtered = teamsList.filter(t => 
+        (t.division === 'J' && junior.includes(t.name)) || 
+        (t.division === 'S' && senior.includes(t.name))
+      );
+    } else if (currentFilter === 'finalists' && currentMode === 'semifinal') {
+      const { junior, senior } = getFinalists();
+      filtered = teamsList.filter(t => 
+        (t.division === 'J' && junior.includes(t.name)) || 
+        (t.division === 'S' && senior.includes(t.name))
+      );
+    }
+    
+    return filtered;
+  }
+
+  // ---------- RENDER ALL ----------
+  function renderAll() {
+    renderModeInfo();
+    renderTeamSelect();
+    renderMiniStrip();
+    renderAttributePanel();
+    renderSpecialActions();
+    renderFinalistsPanel();
+    updateFilterButtons();
+    updateModeButtons();
+  }
+
+  function renderModeInfo() {
+    const modeTitle = document.getElementById('modeTitle');
+    const qualifiedCount = document.getElementById('qualifiedCount');
+    const finalistCount = document.getElementById('finalistCount');
+    const finalistsPanel = document.getElementById('finalistsPanel');
+    
+    if (currentMode === 'qualification') {
+      modeTitle.textContent = 'QUALIFICATION ROUND - TOP 4 PER DIVISION ADVANCE';
+      const { junior, senior } = getQualifiedTeams();
+      qualifiedCount.textContent = `${junior.length + senior.length}/8`;
+      finalistCount.textContent = '0/4';
+      finalistsPanel.style.display = 'none';
+    } else if (currentMode === 'semifinal') {
+      modeTitle.textContent = 'SEMIFINAL ROUND - TOP 2 PER DIVISION ADVANCE TO FINALS';
+      qualifiedCount.textContent = '8/8';
+      const { junior, senior } = getFinalists();
+      finalistCount.textContent = `${junior.length + senior.length}/4`;
+      finalistsPanel.style.display = 'block';
+    } else {
+      modeTitle.textContent = 'FINAL ROUND - CHAMPIONSHIP MATCH';
+      qualifiedCount.textContent = '4/4';
+      finalistCount.textContent = '4/4';
+      finalistsPanel.style.display = 'none';
+    }
+  }
+
+  function renderTeamSelect() {
+    const sel = document.getElementById('teamSelect');
+    const all = getScores();
+    const filteredTeams = getFilteredTeams();
+    
+    sel.innerHTML = '';
+    filteredTeams.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.name;
+      const status = getTeamStatus(t.name);
+      opt.textContent = `${t.name} (${t.division}) - ${status.text} ${all[t.name]?.dq ? '❌' : ''}`;
+      if (t.name === currentTeam) opt.selected = true;
+      sel.appendChild(opt);
+    });
+
+    if (!filteredTeams.find(t => t.name === currentTeam) && filteredTeams.length > 0) {
+      currentTeam = filteredTeams[0].name;
+    }
+    
+    document.getElementById('selectedTeamDisplay').innerText = currentTeam;
+    const div = teamsList.find(t=>t.name===currentTeam)?.division||'J';
+    document.getElementById('divisionDisplay').innerText = div==='J'? 'JUNIOR' : 'SENIOR';
+    
+    const status = getTeamStatus(currentTeam);
+    document.getElementById('statusIndicator').innerHTML = `<span class="status-badge ${status.class}">${status.text}</span>`;
+  }
+
+  function renderMiniStrip() {
+    const strip = document.getElementById('miniTeamStrip');
+    const all = getScores();
+    const filteredTeams = getFilteredTeams();
+    
+    strip.innerHTML = '';
+    filteredTeams.forEach(t => {
+      const dq = all[t.name]?.dq || false;
+      const status = getTeamStatus(t.name);
+      let dotClass = '';
+      if (status.class === 'status-qualified') dotClass = 'dot-qualified';
+      else if (status.class === 'status-semifinal') dotClass = 'dot-semifinal';
+      else if (status.class === 'status-final') dotClass = 'dot-final';
+      else if (status.class === 'status-out') dotClass = 'dot-out';
+      else dotClass = 'dot-no-score';
+      
+      const span = document.createElement('span');
+      span.className = `mini-team ${dq?'dq-mini':''} ${t.name===currentTeam?'active-mini':''}`;
+      span.innerHTML = `<span class="status-dot ${dotClass}"></span> ${t.name}`;
+      span.onclick = () => { currentTeam = t.name; renderAll(); };
+      strip.appendChild(span);
+    });
+  }
+
+  function renderAttributePanel() {
+    const container = document.getElementById('attributePanel');
+    const data = getTeamData(currentTeam);
+    const dq = !!data.dq;
+    const lockedClass = (isPanelLocked || dq) ? 'locked-card' : '';
+    const status = getTeamStatus(currentTeam);
+
+    const card = (field) => {
+      const count = data[field] || 0;
+      const pts = POINTS[field];
+      const disp = DISPLAY[field];
+      const totalFromField = count * pts;
+      
+      return `<div class="attribute-card ${lockedClass}" data-field="${field}">
+        <span class="point-badge">${pts > 0 ? '+' : ''}${pts} pts</span>
+        <div class="attr-name">${disp.name}</div>
+        <div class="attr-value">${count}</div>
+        <div class="attr-footnote">${disp.sub} · now ${totalFromField}</div>
+      </div>`;
+    };
+
+    let html = `
+      <div class="mission-group-title">🌱 MISSION 1 – seeds & water <span class="status-badge ${status.class}" style="margin-left:15px;">${status.text}</span></div>
+      <div class="attribute-grid">
+        ${card('m1_correct_seed')}
+        ${card('m1_misplaced_seed')}
+        ${card('m1_correct_water')}
+        ${card('m1_wrong_water')}
+      </div>
+      <div class="mission-group-title">🍎 MISSION 2 – fruit sorting</div>
+      <div class="attribute-grid">
+        ${card('m2_red_correct')}
+        ${card('m2_red_wrong')}
+        ${card('m2_black_correct')}
+        ${card('m2_black_wrong')}
+      </div>
+    `;
+    container.innerHTML = html;
+
+    if (!isPanelLocked && !dq) {
+      container.querySelectorAll('.attribute-card').forEach(cardDiv => {
+        const field = cardDiv.dataset.field;
+        cardDiv.addEventListener('click', (e) => {
+          e.stopPropagation();
+          addPointValue(currentTeam, field);
+        });
+        cardDiv.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          if (isPanelLocked || dq) return;
+          subtractPointValue(currentTeam, field);
+        });
+      });
+    }
+  }
+
+  function renderSpecialActions() {
+    const container = document.getElementById('specialActions');
+    const data = getTeamData(currentTeam);
+    const dq = !!data.dq;
+    const penalties = data.penalties || 0;
+    const m1 = calcM1(data);
+    const m2 = calcM2(data);
+    const total = dq ? 'DQ' : (m1 + m2 - penalties);
+    const status = getTeamStatus(currentTeam);
+
+    let dqButtonClass = 'dq-button';
+    if (dq) dqButtonClass += ' active-dq';
+
+    container.innerHTML = `
+      <div class="penalty-chip">
+        <span class="label">PENALTIES</span>
+        <span class="value" id="penaltyValue">${penalties}</span>
+        <div style="display:flex; gap:10px; margin-left:10px;">
+          <button class="btn" id="penaltyDown" style="padding:8px 18px;" ${isPanelLocked||dq?'disabled':''}>−1</button>
+          <button class="btn" id="penaltyUp" style="padding:8px 18px;" ${isPanelLocked||dq?'disabled':''}>+1</button>
+        </div>
+      </div>
+      <div class="${dqButtonClass}" id="dqAction">${dq ? '✅ UNDO DQ' : '⛔ DQ'}</div>
+      <div class="totals-row">
+        <div class="total-bubble"><span class="label">M1</span><div class="number m1">${m1}</div></div>
+        <div class="total-bubble"><span class="label">M2</span><div class="number m2">${m2}</div></div>
+        <div class="total-bubble"><span class="label">TOTAL</span><div class="number final">${total}</div></div>
+      </div>
+    `;
+
+    if (!isPanelLocked && !dq) {
+      document.getElementById('penaltyUp')?.addEventListener('click', () => adjustPenalty(currentTeam, 1));
+      document.getElementById('penaltyDown')?.addEventListener('click', () => adjustPenalty(currentTeam, -1));
+    }
+    document.getElementById('dqAction')?.addEventListener('click', () => toggleDQ(currentTeam));
+
+    const resetThis = document.createElement('button');
+    resetThis.className = 'btn';
+    resetThis.textContent = '↺ reset this team';
+    resetThis.style.marginLeft = 'auto';
+    resetThis.onclick = () => { if (!isPanelLocked && !dq && confirm(`Reset ${currentTeam}?`)) resetTeam(currentTeam); };
+    if (!isPanelLocked) container.appendChild(resetThis);
+  }
+
+  function renderFinalistsPanel() {
+    if (currentMode !== 'semifinal') return;
+    
+    const grid = document.getElementById('finalistsGrid');
+    const { junior, senior } = getFinalists();
+    
+    let html = '';
+    
+    // Junior finalists
+    junior.forEach(team => {
+      html += `
+        <div class="finalist-card">
+          <div class="team-name">${team}</div>
+          <div class="team-div">JUNIOR · FINALIST</div>
+        </div>
+      `;
+    });
+    
+    // Senior finalists
+    senior.forEach(team => {
+      html += `
+        <div class="finalist-card">
+          <div class="team-name">${team}</div>
+          <div class="team-div">SENIOR · FINALIST</div>
+        </div>
+      `;
+    });
+    
+    if (junior.length === 0 && senior.length === 0) {
+      html = '<div style="grid-column: span 2; text-align: center; color: #888;">No finalists yet - need positive scores</div>';
+    }
+    
+    grid.innerHTML = html;
+  }
+
+  function updateFilterButtons() {
+    document.getElementById('filterAll').className = `filter-btn ${currentFilter === 'all' ? 'active' : ''}`;
+    document.getElementById('filterJunior').className = `filter-btn ${currentFilter === 'junior' ? 'active' : ''}`;
+    document.getElementById('filterSenior').className = `filter-btn ${currentFilter === 'senior' ? 'active' : ''}`;
+    
+    const qualifiedBtn = document.getElementById('filterQualified');
+    const finalistsBtn = document.getElementById('filterFinalists');
+    
+    if (currentMode === 'qualification') {
+      qualifiedBtn.style.display = 'inline-block';
+      finalistsBtn.style.display = 'none';
+      qualifiedBtn.className = `filter-btn finalist-filter ${currentFilter === 'qualified' ? 'active' : ''}`;
+    } else if (currentMode === 'semifinal') {
+      qualifiedBtn.style.display = 'none';
+      finalistsBtn.style.display = 'inline-block';
+      finalistsBtn.className = `filter-btn finalist-filter ${currentFilter === 'finalists' ? 'active' : ''}`;
+    } else {
+      qualifiedBtn.style.display = 'none';
+      finalistsBtn.style.display = 'none';
+    }
+  }
+
+  function updateModeButtons() {
+    const qualBtn = document.getElementById('qualificationMode');
+    const semiBtn = document.getElementById('semifinalMode');
+    const finalBtn = document.getElementById('finalMode');
+    
+    qualBtn.classList.remove('active');
+    semiBtn.classList.remove('active');
+    finalBtn.classList.remove('active');
+    
+    if (currentMode === 'qualification') {
+      qualBtn.classList.add('active');
+    } else if (currentMode === 'semifinal') {
+      semiBtn.classList.add('active');
+    } else {
+      finalBtn.classList.add('active');
+    }
+  }
+
+  // ---------- LOCK ----------
+  function checkLockState() {
+    const lock = JSON.parse(localStorage.getItem('judgePanelLock'));
+    const overlay = document.getElementById('lockOverlay');
+    const badge = document.getElementById('globalLockBadge');
+    const saveAll = document.getElementById('saveAllBtn');
+    const resetAll = document.getElementById('resetAllBtn');
+    const timer = document.getElementById('lockTimerDisplay');
+
+    if (lock && lock.locked) {
+      isPanelLocked = true;
+      overlay.classList.add('active');
+      badge.className = 'lock-badge locked';
+      badge.innerHTML = '🔒 PANEL LOCKED';
+      if (lock.timeLeft !== undefined) {
+        const m = Math.floor(lock.timeLeft/60);
+        const s = lock.timeLeft%60;
+        timer.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+      }
+      saveAll.disabled = true;
+      resetAll.disabled = true;
+    } else {
+      isPanelLocked = false;
+      overlay.classList.remove('active');
+      badge.className = 'lock-badge';
+      badge.innerHTML = '🔓 PANEL ACTIVE';
+      saveAll.disabled = false;
+      resetAll.disabled = false;
+    }
+    renderAll();
+  }
+
+  // ---------- GLOBAL ----------
+  window.saveAllScores = function() {
+    if(isPanelLocked) return;
+    const mode = currentMode === 'qualification' ? 'Qualification' : currentMode === 'semifinal' ? 'Semifinal' : 'Final';
+    alert(`✅ ${mode} scores saved (live board synced)`);
+  }
+
+  // ---------- EVENT LISTENERS ----------
+  document.getElementById('teamSelect').addEventListener('change', (e) => {
+    currentTeam = e.target.value;
+    renderAll();
+  });
+
+  document.getElementById('filterAll').addEventListener('click', () => {
+    currentFilter = 'all';
+    const filteredTeams = getFilteredTeams();
+    if (filteredTeams.length > 0) currentTeam = filteredTeams[0].name;
+    renderAll();
+  });
+
+  document.getElementById('filterJunior').addEventListener('click', () => {
+    currentFilter = 'junior';
+    const filteredTeams = getFilteredTeams();
+    if (filteredTeams.length > 0) currentTeam = filteredTeams[0].name;
+    renderAll();
+  });
+
+  document.getElementById('filterSenior').addEventListener('click', () => {
+    currentFilter = 'senior';
+    const filteredTeams = getFilteredTeams();
+    if (filteredTeams.length > 0) currentTeam = filteredTeams[0].name;
+    renderAll();
+  });
+
+  document.getElementById('filterQualified').addEventListener('click', () => {
+    if (currentMode === 'qualification') {
+      currentFilter = 'qualified';
+      const filteredTeams = getFilteredTeams();
+      if (filteredTeams.length > 0) currentTeam = filteredTeams[0].name;
+      renderAll();
+    }
+  });
+
+  document.getElementById('filterFinalists').addEventListener('click', () => {
+    if (currentMode === 'semifinal') {
+      currentFilter = 'finalists';
+      const filteredTeams = getFilteredTeams();
+      if (filteredTeams.length > 0) currentTeam = filteredTeams[0].name;
+      renderAll();
+    }
+  });
+
+  document.getElementById('qualificationMode').addEventListener('click', () => {
+    currentMode = 'qualification';
+    currentFilter = 'all';
+    renderAll();
+  });
+
+  document.getElementById('semifinalMode').addEventListener('click', () => {
+    currentMode = 'semifinal';
+    currentFilter = 'all';
+    renderAll();
+  });
+
+  document.getElementById('finalMode').addEventListener('click', () => {
+    currentMode = 'final';
+    currentFilter = 'all';
+    renderAll();
+  });
+
+  // init
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!localStorage.getItem('scores')) localStorage.setItem('scores', '{}');
+    if (!localStorage.getItem('semifinal_scores')) localStorage.setItem('semifinal_scores', '{}');
+    if (!localStorage.getItem('final_scores')) localStorage.setItem('final_scores', '{}');
+    
+    renderAll();
+    checkLockState();
+    lockInterval = setInterval(checkLockState, 500);
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'scores' || e.key === 'semifinal_scores' || e.key === 'final_scores' || e.key === 'judgePanelLock') {
+        checkLockState();
+        renderAll();
+      }
+    });
+  });
+
+  window.addEventListener('beforeunload', ()=> clearInterval(lockInterval));
+
+  document.getElementById('saveAllBtn').addEventListener('click', saveAllScores);
+  document.getElementById('resetAllBtn').addEventListener('click', resetAllScores);
+})();
 </script>
 
+<!-- hint -->
+<small style="display:block; text-align:right; color:#444; margin-top:20px;">⚡ left‑click = add one occurrence · right‑click = remove one occurrence · Now with FINAL mode!</small>
 </body>
 </html>

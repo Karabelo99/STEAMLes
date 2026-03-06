@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Finals · Championship</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background: #0a0a0a;
+      color: #ffffff;
+      padding: 30px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Navigation */
+    .nav {
+      background: #000000;
+      padding: 18px 25px;
+      margin-bottom: 30px;
+      border: 1px solid #2a2a2a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+      border-radius: 8px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 10px;
+    }
+
+    .nav-links a {
+      color: #ffffff;
+      text-decoration: none;
+      padding: 10px 20px;
+      font-weight: 500;
+      transition: all 0.3s;
+      border: 1px solid transparent;
+      border-radius: 6px;
+    }
+
+    .nav-links a:hover {
+      background: #1a1a1a;
+      border-color: #444;
+    }
+
+    .nav-links a.active {
+      background: #1a1a1a;
+      border-color: #ffd700;
+      color: #ffd700;
+    }
+
+    .nav-brand {
+      color: #ffd700;
+      font-weight: 300;
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 4rem;
+      font-weight: 300;
+      letter-spacing: 5px;
+      color: #ffd700;
+      text-transform: uppercase;
+      text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    }
+
+    .header .subtitle {
+      color: #888;
+      font-size: 1.2rem;
+      margin-top: 10px;
+    }
+
+    /* Finalist Cards */
+    .finalist-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px;
+      margin-bottom: 50px;
+    }
+
+    .finalist-card {
+      background: #111;
+      border: 2px solid;
+      padding: 30px;
+      border-radius: 12px;
+    }
+
+    .finalist-card.junior {
+      border-color: #00C851;
+      box-shadow: 0 0 30px rgba(0, 200, 81, 0.2);
+    }
+
+    .finalist-card.senior {
+      border-color: #33b5e5;
+      box-shadow: 0 0 30px rgba(51, 181, 229, 0.2);
+    }
+
+    .division-badge {
+      display: inline-block;
+      padding: 5px 15px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .finalist-card.junior .division-badge {
+      background: #00C851;
+      color: black;
+    }
+
+    .finalist-card.senior .division-badge {
+      background: #33b5e5;
+      color: black;
+    }
+
+    .team-name {
+      font-size: 3rem;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .finalist-card.junior .team-name {
+      color: #00C851;
+    }
+
+    .finalist-card.senior .team-name {
+      color: #33b5e5;
+    }
+
+    .team-rank {
+      font-size: 1.5rem;
+      color: #ffd700;
+      margin-bottom: 15px;
+    }
+
+    .qualifying-score {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+    }
+
+    .qualifying-score .label {
+      color: #888;
+      font-size: 0.9rem;
+    }
+
+    .qualifying-score .value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ffd700;
+    }
+
+    /* Tie-Breaker Section */
+    .tiebreaker-section {
+      background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+      border: 3px solid #ff4444;
+      padding: 30px;
+      margin-bottom: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(255, 68, 68, 0.3);
+    }
+
+    .tiebreaker-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .tiebreaker-header h2 {
+      color: #ff4444;
+      font-size: 2rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .tiebreaker-icon {
+      font-size: 2.5rem;
+    }
+
+    .tiebreaker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .tiebreaker-card {
+      background: #0a0a0a;
+      border: 2px solid #ff4444;
+      padding: 20px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tiebreaker-team {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .tiebreaker-team .team {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ff4444;
+    }
+
+    .tiebreaker-team .division {
+      color: #888;
+      font-size: 0.9rem;
+    }
+
+    .tiebreaker-score {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ff4444;
+    }
+
+    .tiebreaker-message {
+      background: #ff4444;
+      color: black;
+      padding: 15px 25px;
+      border-radius: 50px;
+      display: inline-block;
+      font-weight: bold;
+      font-size: 1.2rem;
+      margin-top: 20px;
+    }
+
+    /* Tables */
+    .table-container {
+      background: #111;
+      border: 2px solid #ffd700;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+
+    .table-container h2 {
+      color: #ffd700;
+      font-size: 2rem;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      background: #1a1a1a;
+      color: #ffd700;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      padding: 15px 8px;
+      border: 1px solid #333;
+    }
+
+    td {
+      padding: 12px 8px;
+      border: 1px solid #222;
+      text-align: center;
+    }
+
+    /* Medal colors */
+    .gold {
+      background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
+      color: black;
+      font-weight: bold;
+    }
+    .gold td { color: black; }
+
+    .silver {
+      background: linear-gradient(135deg, #e0e0e0 0%, #a0a0a0 100%);
+      color: black;
+      font-weight: bold;
+    }
+    .silver td { color: black; }
+
+    .bronze {
+      background: linear-gradient(135deg, #cd7f32 0%, #8b4513 100%);
+      color: black;
+      font-weight: bold;
+    }
+    .bronze td { color: black; }
+
+    .finalist {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: white;
+      font-weight: bold;
+    }
+    .finalist td { color: white; }
+
+    .tie-row {
+      background: repeating-linear-gradient(45deg, #ff4444, #ff4444 10px, #cc0000 10px, #cc0000 20px) !important;
+      color: white !important;
+      font-weight: bold;
+    }
+    .tie-row td { color: white !important; }
+
+    .junior-row {
+      border-left: 4px solid #00C851;
+    }
+
+    .senior-row {
+      border-left: 4px solid #33b5e5;
+    }
+
+    .medal-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    .medal-gold {
+      background: #ffd700;
+      color: black;
+    }
+
+    .medal-silver {
+      background: #e0e0e0;
+      color: black;
+    }
+
+    .medal-bronze {
+      background: #cd7f32;
+      color: black;
+    }
+
+    .medal-finalist {
+      background: #1e3c72;
+      color: white;
+    }
+
+    .tie-badge {
+      background: #ff4444;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      margin-left: 5px;
+    }
+
+    .score-highlight {
+      background: #1a3a1a;
+      color: #a0ffa0;
+    }
+
+    .penalty-col {
+      background: #330000;
+      color: #ff8888;
+    }
+
+    .total-col {
+      background: #004d00;
+      color: white;
+      font-weight: 800;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px;
+      color: #888;
+      background: #111;
+      border: 2px dashed #333;
+      border-radius: 12px;
+      font-size: 1.2rem;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #444;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Navigation -->
+    <div class="nav">
+      <div class="nav-brand">⚫ SCOREBOARD PRO</div>
+      <div class="nav-links">
+        <a href="index.html">JUDGE PANEL</a>
+        <a href="Display.html">LIVE BOARD</a>
+        <a href="#" class="active">⭐ FINALS</a>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+      <h1>⭐ FINALS ⭐</h1>
+      <div class="subtitle">Championship Round · Top 2 From Each Division</div>
+    </div>
+
+    <!-- Tie-Breaker Section (Shows when there are ties) -->
+    <div id="tiebreakerSection" style="display: none;">
+      <!-- Will be populated by JavaScript -->
+    </div>
+
+    <!-- Finalist Cards (Dynamic) -->
+    <div class="finalist-grid" id="finalistCards"></div>
+
+    <!-- Finals Table -->
+    <div class="table-container">
+      <h2>🏆 CHAMPIONSHIP RANKINGS</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Team</th>
+            <th>Div</th>
+            <th>Seed ✓</th>
+            <th>Seed ✗</th>
+            <th>Water ✓</th>
+            <th>Water ✗</th>
+            <th>M1</th>
+            <th>Red ✓</th>
+            <th>Red ✗</th>
+            <th>Black ✓</th>
+            <th>Black ✗</th>
+            <th>M2</th>
+            <th>Pen</th>
+            <th>Total</th>
+            <th>Medal</th>
+          </tr>
+        </thead>
+        <tbody id="finalsTable"></tbody>
+      </table>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      Finals · Championship Round · Top 2 From Each Division Compete
+    </div>
+  </div>
+
+  <script>
+    // Teams list
+    const teamsList = [
+      {name:"J1", division:"J"}, {name:"J2", division:"J"}, {name:"J3", division:"J"},
+      {name:"J4", division:"J"}, {name:"J5", division:"J"}, {name:"J6", division:"J"}, {name:"J7", division:"J"},
+      {name:"S1", division:"S"}, {name:"S2", division:"S"}, {name:"S3", division:"S"},
+      {name:"S4", division:"S"}, {name:"S5", division:"S"}, {name:"S6", division:"S"}, {name:"S7", division:"S"}
+    ];
+
+    // Calculations
+    function calcM1(t) {
+      return (t.m1_correct_seed||0)*10 + (t.m1_misplaced_seed||0)*(-5) + 
+             (t.m1_correct_water||0)*30 + (t.m1_wrong_water||0)*0;
+    }
+
+    function calcM2(t) {
+      return (t.m2_red_correct||0)*5 + (t.m2_red_wrong||0)*(-5) + 
+             (t.m2_black_correct||0)*10 + (t.m2_black_wrong||0)*(-10);
+    }
+
+    function calcTotal(t) {
+      return t.dq ? -9999 : calcM1(t) + calcM2(t) - (t.penalties||0);
+    }
+
+    // Get ranked teams
+    function getRankedTeams(teams, data) {
+      return teams.map(team => {
+        const t = data[team.name] || {};
+        return {
+          name: team.name,
+          division: team.division,
+          raw: t,
+          m1: calcM1(t),
+          m2: calcM2(t),
+          penalties: t.penalties||0,
+          total: calcTotal(t),
+          m1_correct_seed: t.m1_correct_seed||0,
+          m1_misplaced_seed: t.m1_misplaced_seed||0,
+          m1_correct_water: t.m1_correct_water||0,
+          m1_wrong_water: t.m1_wrong_water||0,
+          m2_red_correct: t.m2_red_correct||0,
+          m2_red_wrong: t.m2_red_wrong||0,
+          m2_black_correct: t.m2_black_correct||0,
+          m2_black_wrong: t.m2_black_wrong||0,
+          dq: t.dq||false
+        };
+      }).filter(t => !t.dq && t.total > 0).sort((a, b) => b.total - a.total);
+    }
+
+    // Get finalists (top 2 per division from semifinals)
+    function getFinalists() {
+      const data = JSON.parse(localStorage.getItem('semifinal_scores')) || {};
+      
+      const juniorTeams = teamsList.filter(t => t.division === 'J');
+      const seniorTeams = teamsList.filter(t => t.division === 'S');
+      
+      const juniorRanked = getRankedTeams(juniorTeams, data);
+      const seniorRanked = getRankedTeams(seniorTeams, data);
+      
+      return {
+        junior: juniorRanked.slice(0, 2),
+        senior: seniorRanked.slice(0, 2)
+      };
+    }
+
+    // Check for ties in finals
+    function checkFinalsTies() {
+      const finalsData = JSON.parse(localStorage.getItem('final_scores')) || {};
+      const { junior, senior } = getFinalists();
+      const allFinalists = [...junior, ...senior];
+      
+      // Get finals scores
+      const finalistsWithScores = allFinalists.map(team => {
+        const s = finalsData[team.name] || {};
+        return {
+          ...team,
+          total: calcTotal(s)
+        };
+      }).sort((a, b) => b.total - a.total);
+
+      // Find ties
+      const ties = [];
+      for (let i = 0; i < finalistsWithScores.length - 1; i++) {
+        if (finalistsWithScores[i].total === finalistsWithScores[i + 1].total && finalistsWithScores[i].total > 0) {
+          // Check if this tie pair isn't already in the array
+          const existingTie = ties.find(t => 
+            (t.team1 === finalistsWithScores[i].name && t.team2 === finalistsWithScores[i + 1].name) ||
+            (t.team1 === finalistsWithScores[i + 1].name && t.team2 === finalistsWithScores[i].name)
+          );
+          
+          if (!existingTie) {
+            ties.push({
+              team1: finalistsWithScores[i].name,
+              team2: finalistsWithScores[i + 1].name,
+              score: finalistsWithScores[i].total,
+              division1: finalistsWithScores[i].division,
+              division2: finalistsWithScores[i + 1].division,
+              rank1: i + 1,
+              rank2: i + 2
+            });
+          }
+        }
+      }
+      
+      return ties;
+    }
+
+    // Update tie-breaker section
+    function updateTiebreaker() {
+      const ties = checkFinalsTies();
+      const section = document.getElementById('tiebreakerSection');
+      
+      if (ties.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+
+      let html = `
+        <div class="tiebreaker-section">
+          <div class="tiebreaker-header">
+            <span class="tiebreaker-icon">⚔️</span>
+            <h2>TIE-BREAKER REQUIRED</h2>
+            <span class="tiebreaker-icon">⚔️</span>
+          </div>
+          <div class="tiebreaker-grid">
+      `;
+
+      ties.forEach(tie => {
+        html += `
+          <div class="tiebreaker-card">
+            <div class="tiebreaker-team">
+              <div>
+                <div class="team">${tie.team1}</div>
+                <div class="division">${tie.division1 === 'J' ? 'Junior' : 'Senior'} · Rank #${tie.rank1}</div>
+              </div>
+              <div style="color:#ff4444; font-size:2rem;">VS</div>
+              <div>
+                <div class="team">${tie.team2}</div>
+                <div class="division">${tie.division2 === 'J' ? 'Junior' : 'Senior'} · Rank #${tie.rank2}</div>
+              </div>
+            </div>
+            <div class="tiebreaker-score">${tie.score} pts</div>
+          </div>
+        `;
+      });
+
+      html += `
+          </div>
+          <div class="tiebreaker-message">
+            ⚔️ These teams are tied · Must play a tie-breaker match ⚔️
+          </div>
+        </div>
+      `;
+
+      section.innerHTML = html;
+      section.style.display = 'block';
+    }
+
+    // Update finalist cards
+    function updateFinalistCards() {
+      const { junior, senior } = getFinalists();
+      const container = document.getElementById('finalistCards');
+      
+      if (junior.length === 0 && senior.length === 0) {
+        container.innerHTML = `<div class="empty-state">No finalists yet · Need positive scores in semifinals</div>`;
+        return;
+      }
+
+      let html = '';
+
+      // Junior cards
+      junior.forEach((team, i) => {
+        html += `
+          <div class="finalist-card junior">
+            <div class="division-badge">👥 JUNIOR DIVISION</div>
+            <div class="team-name">${team.name}</div>
+            <div class="team-rank">${i === 0 ? '🥇 CHAMPION' : '🥈 RUNNER-UP'}</div>
+            <div class="qualifying-score">
+              <div class="label">Qualifying Score</div>
+              <div class="value">${team.total}</div>
+            </div>
+          </div>
+        `;
+      });
+
+      // Senior cards
+      senior.forEach((team, i) => {
+        html += `
+          <div class="finalist-card senior">
+            <div class="division-badge">🎓 SENIOR DIVISION</div>
+            <div class="team-name">${team.name}</div>
+            <div class="team-rank">${i === 0 ? '🥇 CHAMPION' : '🥈 RUNNER-UP'}</div>
+            <div class="qualifying-score">
+              <div class="label">Qualifying Score</div>
+              <div class="value">${team.total}</div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    // Update finals table
+    function updateFinalsTable() {
+      const { junior, senior } = getFinalists();
+      const allFinalists = [...junior, ...senior];
+      const finalsData = JSON.parse(localStorage.getItem('final_scores')) || {};
+      const ties = checkFinalsTies();
+      const tiedTeams = ties.flatMap(tie => [tie.team1, tie.team2]);
+      
+      if (allFinalists.length === 0) {
+        document.getElementById('finalsTable').innerHTML = 
+          `<tr><td colspan="16" style="text-align:center; padding:40px;">No finalists yet</td></tr>`;
+        return;
+      }
+
+      // Get finals scores
+      const finalistsWithScores = allFinalists.map(team => {
+        const s = finalsData[team.name] || {};
+        return {
+          ...team,
+          raw: s,
+          m1: calcM1(s),
+          m2: calcM2(s),
+          penalties: s.penalties||0,
+          total: calcTotal(s),
+          m1_correct_seed: s.m1_correct_seed||0,
+          m1_misplaced_seed: s.m1_misplaced_seed||0,
+          m1_correct_water: s.m1_correct_water||0,
+          m1_wrong_water: s.m1_wrong_water||0,
+          m2_red_correct: s.m2_red_correct||0,
+          m2_red_wrong: s.m2_red_wrong||0,
+          m2_black_correct: s.m2_black_correct||0,
+          m2_black_wrong: s.m2_black_wrong||0
+        };
+      }).sort((a, b) => b.total - a.total);
+
+      let html = '';
+      finalistsWithScores.forEach((team, i) => {
+        let rankClass = '';
+        let medalBadge = '';
+        const isTied = tiedTeams.includes(team.name);
+        
+        if (isTied) {
+          rankClass = 'tie-row';
+          medalBadge = '<span class="tie-badge">⚔️ TIE</span>';
+        } else if (i === 0) {
+          rankClass = 'gold';
+          medalBadge = '<span class="medal-badge medal-gold">🥇 GOLD</span>';
+        } else if (i === 1) {
+          rankClass = 'silver';
+          medalBadge = '<span class="medal-badge medal-silver">🥈 SILVER</span>';
+        } else if (i === 2) {
+          rankClass = 'bronze';
+          medalBadge = '<span class="medal-badge medal-bronze">🥉 BRONZE</span>';
+        } else {
+          rankClass = 'finalist';
+          medalBadge = '<span class="medal-badge medal-finalist">🏅 FINALIST</span>';
+        }
+
+        const divisionClass = team.division === 'J' ? 'junior-row' : 'senior-row';
+
+        html += `
+          <tr class="${rankClass} ${divisionClass}">
+            <td>${i + 1} ${isTied ? '⚔️' : ''}</td>
+            <td><strong>${team.name}</strong></td>
+            <td>${team.division === 'J' ? 'J' : 'S'}</td>
+            <td>${team.m1_correct_seed}</td>
+            <td>${team.m1_misplaced_seed}</td>
+            <td>${team.m1_correct_water}</td>
+            <td>${team.m1_wrong_water}</td>
+            <td class="score-highlight">${team.m1}</td>
+            <td>${team.m2_red_correct}</td>
+            <td>${team.m2_red_wrong}</td>
+            <td>${team.m2_black_correct}</td>
+            <td>${team.m2_black_wrong}</td>
+            <td class="score-highlight">${team.m2}</td>
+            <td class="penalty-col">${team.penalties}</td>
+            <td class="total-col">${team.total}</td>
+            <td>${medalBadge}</td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('finalsTable').innerHTML = html;
+    }
+
+    // Initialize and update
+    function updateAll() {
+      updateTiebreaker();
+      updateFinalistCards();
+      updateFinalsTable();
+    }
+
+    // Initial load
+    updateAll();
+    
+    // Listen for changes
+    window.addEventListener('storage', updateAll);
+    setInterval(updateAll, 1000);
+  </script>
+</body>
+</html>
